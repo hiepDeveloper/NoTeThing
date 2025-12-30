@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.geometry.Insets?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<VBox fx:id="rootPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.PrimaryController" styleClass="root">
+   <children>
+      <HBox fx:id="headerBox" styleClass="header-bar" alignment="CENTER_LEFT" minHeight="45" prefHeight="45">
+         <children>
+            <!-- Nút di chuyển (Drag handle) -->
+            <Label fx:id="dragHandle" onMouseDragged="#handleMouseDragged" onMousePressed="#handleMousePressed" styleClass="drag-handle">
+               <graphic>
+                  <FontIcon iconLiteral="bi-three-dots-vertical" iconSize="20" />
+               </graphic>
+               <HBox.margin>
+                  <Insets left="5.0" />
+               </HBox.margin>
+            </Label>
+            
+            <TextField fx:id="noteTitle" styleClass="title-field" promptText="Tiêu đề..." HBox.hgrow="ALWAYS" />
+            
+            <HBox spacing="1" alignment="CENTER_RIGHT">
+               <children>
+                  <Button onAction="#openNoteList" styleClass="icon-button">
+                     <graphic>
+                        <FontIcon iconLiteral="bi-list" iconSize="18" />
+                     </graphic>
+                  </Button>
+                  <Button fx:id="alwaysOnTopButton" onAction="#toggleAlwaysOnTop" styleClass="icon-button">
+                     <graphic>
+                        <FontIcon fx:id="alwaysOnTopIcon" iconLiteral="bi-pin-angle" iconSize="18" />
+                     </graphic>
+                  </Button>
+                  <Button onAction="#minimizeNote" styleClass="icon-button">
+                     <graphic>
+                        <FontIcon iconLiteral="bi-dash" iconSize="18" />
+                     </graphic>
+                  </Button>
+                  <Button onAction="#closeNote" styleClass="icon-button">
+                     <graphic>
+                        <FontIcon iconLiteral="bi-x" iconSize="18" />
+                     </graphic>
+                  </Button>
+               </children>
+            </HBox>
+         </children>
+         <padding>
+            <Insets left="5.0" right="2.0" />
+         </padding>
+      </HBox>
+      <TextArea fx:id="noteContent" wrapText="true" VBox.vgrow="ALWAYS" styleClass="content-area" promptText="Viết ghi chú..."/>
+   </children>
+   <padding>
+      <Insets bottom="0.0" left="0.0" right="0.0" top="0.0" />
+   </padding>
+</VBox>

@@ -1,0 +1,22 @@
+# Maven
+target/
+*.class
+
+# Distribution
+notething/dist/
+notething/target/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Temporary files
+*.log
+*.tmp
