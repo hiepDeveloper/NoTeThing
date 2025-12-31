@@ -8,6 +8,19 @@ Tất cả các thay đổi đáng chú ý của dự án này sẽ được ghi
 Định dạng dựa trên [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 và dự án này tuân thủ [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2025-12-31
+
+### Đã thêm
+- **Chế độ Tối (Dark Mode)**: Hỗ trợ chuyển đổi theme toàn diện, tự động ghi nhớ cài đặt và cập nhật thời gian thực cho tất cả cửa sổ.
+- **Độ trong suốt & Kính mờ**: Điều chỉnh độ mờ linh hoạt (30% - 100%) kết hợp hiệu ứng Acrylic "kính mờ" sang trọng từ Windows.
+- **Font chữ viết tay**: Mang lại vẻ ngoài như giấy dán thật với font "Fuzzy Bubbles" và hỗ trợ Unicode tiếng Việt hoàn hảo (Patrick Hand, Itim).
+- **Bộ sưu tập màu sắc thích ứng**: 7 tông màu chuyên sâu (Vàng, Xanh lá, Xanh dương, Cam, Đỏ, Tím, Teal) tự động tinh chỉnh theo chế độ sáng/tối.
+
+### Đã thay đổi
+- **Thiết kế lại thành phần UI**: Làm mới nút di chuyển, bo góc cửa sổ 12px và tối ưu hóa màu sắc các cửa sổ phụ theo theme.
+- **Nâng cấp Danh sách ghi chú**: Mở rộng không gian hiển thị (400px) và tinh chỉnh font chữ giúp đọc nội dung dễ dàng hơn.
+- **Cải thiện tương tác**: Thanh trượt độ nhạy cao, mở rộng vùng bắt sự kiện và các nút bấm phản hồi thông minh theo màu nền.
+
 ## [0.1.0] - 2025-12-30
 
 ### Đã thêm

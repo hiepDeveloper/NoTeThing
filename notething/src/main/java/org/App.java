@@ -18,11 +18,19 @@ import javafx.stage.Stage;
  * Lớp khởi chạy ứng dụng Sticky Note.
  */
 public class App extends Application {
+    private static boolean isDarkMode = false;
 
     @Override
     public void start(Stage stage) throws IOException {
-        // Thiết lập giao diện AtlantaFX
-        Application.setUserAgentStylesheet(new atlantafx.base.theme.PrimerLight().getUserAgentStylesheet());
+        // Tải font chữ viết tay tùy chỉnh
+        javafx.scene.text.Font.loadFont(getClass().getResourceAsStream("/org/font/FuzzyBubbles-Regular.ttf"), 16);
+        javafx.scene.text.Font.loadFont(getClass().getResourceAsStream("/org/font/FuzzyBubbles-Bold.ttf"), 16);
+        
+        // Tải cài đặt giao diện
+        isDarkMode = NoteManager.getInstance().loadDarkMode();
+        
+        // Thiết lập giao diện ban đầu
+        applyTheme();
         
         // Tự động đóng ứng dụng khi hết cửa sổ
         Platform.setImplicitExit(true);
@@ -46,13 +54,16 @@ public class App extends Application {
      */
     public static void showNoteList(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("fxml/notelist.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 350, 500); 
+        Scene scene = new Scene(fxmlLoader.load(), 400, 500); 
         scene.getStylesheets().add(App.class.getResource("css/styles.css").toExternalForm()); 
         
         stage.initStyle(javafx.stage.StageStyle.DECORATED);
         stage.getIcons().add(new javafx.scene.image.Image(App.class.getResourceAsStream("images/icon.png")));
         stage.setTitle("NoTeThing");
         stage.setScene(scene);
+        if (isDarkMode) {
+            scene.getRoot().getStyleClass().add("dark");
+        }
         stage.show();
         
         NoteManager.getInstance().setNoteListStage(stage);
@@ -90,7 +101,7 @@ public class App extends Application {
     private static void createNoteWindow(NoteData data) {
         try {
             Stage stage = new Stage();
-            stage.initStyle(javafx.stage.StageStyle.UNDECORATED);
+            stage.initStyle(javafx.stage.StageStyle.TRANSPARENT);
             stage.getIcons().add(new javafx.scene.image.Image(App.class.getResourceAsStream("images/icon.png")));
             
             // Xử lý định danh và tiêu đề tạm thời để ResizeHelper tìm HWND
@@ -109,10 +120,16 @@ public class App extends Application {
             }
             
             FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("fxml/primary.fxml"));
-            Scene scene = new Scene(fxmlLoader.load(), 300, 300);
+            Scene scene = new Scene(fxmlLoader.load());
+            scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
             scene.getStylesheets().add(App.class.getResource("css/styles.css").toExternalForm());
             
             stage.setScene(scene);
+            
+            // Áp dụng class theme cho root
+            if (isDarkMode) {
+                scene.getRoot().getStyleClass().add("dark");
+            }
             
             // Áp dụng tọa độ nếu có dữ liệu
             if (data != null) {
@@ -130,6 +147,8 @@ public class App extends Application {
                 note.setTitle(data.getTitle());
                 note.setContent(data.getContent());
                 note.setAlwaysOnTop(data.isAlwaysOnTop());
+                if (data.getColor() != null) note.setColor(data.getColor());
+                note.setOpacity(data.getOpacity());
             } else {
                 note.setTitle(NoteManager.getInstance().getNextDefaultTitle());
             }
@@ -150,6 +169,8 @@ public class App extends Application {
                 javafx.application.Platform.runLater(() -> {
                     note.bindTitleToStage();
                     controller.focusContent();
+                    // Áp dụng Acrylic/Blur hiệu ứng hệ thống
+                    GlassHelper.applyBlur(stage);
                 });
             } else {
                 // Nếu note cũ đang đóng, vẫn bind để đồng bộ data
@@ -165,6 +186,54 @@ public class App extends Application {
     public void stop() {
         // Lưu dữ liệu trước khi thoát
         NoteManager.getInstance().saveNotes();
+    }
+
+    /**
+     * Chuyển đổi giữa giao diện Sáng và Tối.
+     */
+    public static void toggleTheme() {
+        isDarkMode = !isDarkMode;
+        applyTheme();
+        // Lưu cài đặt ngay khi thay đổi
+        NoteManager.getInstance().saveSettings(isDarkMode);
+    }
+
+    public static boolean isDarkMode() {
+        return isDarkMode;
+    }
+
+    private static void applyTheme() {
+        if (isDarkMode) {
+            Application.setUserAgentStylesheet(new atlantafx.base.theme.PrimerDark().getUserAgentStylesheet());
+        } else {
+            Application.setUserAgentStylesheet(new atlantafx.base.theme.PrimerLight().getUserAgentStylesheet());
+        }
+        
+        // Cập nhật class pseudo-class 'dark' cho tất cả các stage đang mở để CSS update
+        updateStylesheetsAcrossWindows();
+    }
+
+    private static void updateStylesheetsAcrossWindows() {
+        // 1. Cập nhật Note List
+        Stage listStage = NoteManager.getInstance().getNoteListStage();
+        if (listStage != null && listStage.getScene() != null) {
+            updateRootTheme(listStage.getScene().getRoot());
+        }
+
+        // 2. Cập nhật tất cả các ghi chú (bao gồm cả ghi chú đang đóng)
+        for (Note note : NoteManager.getInstance().getNotes()) {
+            if (note.getStage() != null && note.getStage().getScene() != null) {
+                updateRootTheme(note.getStage().getScene().getRoot());
+            }
+        }
+    }
+
+    private static void updateRootTheme(javafx.scene.Parent root) {
+        if (root == null) return;
+        root.getStyleClass().remove("dark");
+        if (isDarkMode) {
+            root.getStyleClass().add("dark");
+        }
     }
 
     public static void main(String[] args) {

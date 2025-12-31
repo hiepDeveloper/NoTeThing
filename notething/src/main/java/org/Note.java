@@ -20,6 +20,8 @@ public class Note {
     private final javafx.beans.property.DoubleProperty width;
     private final javafx.beans.property.DoubleProperty height;
     private final javafx.beans.property.BooleanProperty alwaysOnTop;
+    private final StringProperty color;
+    private final javafx.beans.property.DoubleProperty opacity;
     
     private Stage stage;
     private String id;
@@ -30,6 +32,8 @@ public class Note {
         this.title = new SimpleStringProperty("");
         this.content = new SimpleStringProperty("");
         this.alwaysOnTop = new javafx.beans.property.SimpleBooleanProperty(false);
+        this.color = new SimpleStringProperty("color-yellow");
+        this.opacity = new javafx.beans.property.SimpleDoubleProperty(1.0);
         
         // Khởi tạo các thuộc tính vị trí và kích thước
         this.x = new javafx.beans.property.SimpleDoubleProperty(stage.getX());
@@ -81,6 +85,14 @@ public class Note {
     public boolean isAlwaysOnTop() { return alwaysOnTop.get(); }
     public void setAlwaysOnTop(boolean value) { alwaysOnTop.set(value); }
     public javafx.beans.property.BooleanProperty alwaysOnTopProperty() { return alwaysOnTop; }
+    
+    public String getColor() { return color.get(); }
+    public void setColor(String value) { color.set(value); }
+    public StringProperty colorProperty() { return color; }
+    
+    public double getOpacity() { return opacity.get(); }
+    public void setOpacity(double value) { opacity.set(value); }
+    public javafx.beans.property.DoubleProperty opacityProperty() { return opacity; }
     
     public Stage getStage() { return stage; }
     public void setStage(Stage stage) { this.stage = stage; }

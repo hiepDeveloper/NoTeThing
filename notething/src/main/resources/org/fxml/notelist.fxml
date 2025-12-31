@@ -21,6 +21,11 @@
          <children>
             <Label text="NoTeThing" styleClass="list-title"/>
             <Region HBox.hgrow="ALWAYS" />
+            <Button onAction="#toggleAppTheme" styleClass="action-button">
+               <graphic>
+                  <FontIcon fx:id="themeIcon" iconLiteral="bi-moon-stars" iconSize="18" />
+               </graphic>
+            </Button>
             <Button text=" Ghi chú mới" onAction="#createNewNote" styleClass="primary-button">
                <graphic>
                   <FontIcon iconLiteral="bi-plus" iconSize="16" />

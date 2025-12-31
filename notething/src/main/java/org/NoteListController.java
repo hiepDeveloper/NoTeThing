@@ -22,11 +22,17 @@ public class NoteListController {
 
     @FXML
     private ListView<Note> noteListView;
+    
+    @FXML
+    private FontIcon themeIcon;
 
     /**
      * Khởi tạo và thiết lập hiển thị danh sách.
      */
     public void initialize() {
+        // Cập nhật icon theme ban đầu
+        updateThemeIcon();
+        
         // Gán dữ liệu cho ListView
         noteListView.setItems(NoteManager.getInstance().getNotes());
 
@@ -48,7 +54,7 @@ public class NoteListController {
                     javafx.scene.control.TextField titleField = new javafx.scene.control.TextField();
                     titleField.textProperty().bindBidirectional(note.titleProperty());
                     titleField.getStyleClass().add("list-title-field");
-                    titleField.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-background-color: transparent; -fx-padding: 0; -fx-text-fill: #333;");
+                    titleField.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-background-color: transparent; -fx-padding: 0;");
                     
                     // Lưu dữ liệu khi kết thúc chỉnh sửa
                     titleField.focusedProperty().addListener((obs, oldVal, newVal) -> {
@@ -84,6 +90,16 @@ public class NoteListController {
                     hbox.getChildren().addAll(titleField, spacer, showButton, closeButton);
                     setGraphic(hbox);
                     setText(null);
+                    
+                    // Áp dụng màu sắc cho cell
+                    Runnable refreshColor = () -> {
+                        getStyleClass().removeAll("color-yellow", "color-green", "color-pink", "color-purple", "color-blue", "color-gray", "color-charcoal");
+                        getStyleClass().add(note.getColor());
+                    };
+                    refreshColor.run();
+                    
+                    // Lắng nghe thay đổi màu từ cửa sổ note
+                    note.colorProperty().addListener((obs, oldV, newV) -> refreshColor.run());
                 }
             }
         });
@@ -107,5 +123,21 @@ public class NoteListController {
     @FXML
     private void createNewNote() {
         App.newNote();
+    }
+    
+    /**
+     * Chuyển đổi giao diện sáng/tối.
+     */
+    @FXML
+    private void toggleAppTheme() {
+        App.toggleTheme();
+        updateThemeIcon();
+    }
+    
+    private void updateThemeIcon() {
+        if (themeIcon != null) {
+            boolean isDark = App.isDarkMode();
+            themeIcon.setIconLiteral(isDark ? "bi-sun" : "bi-moon-stars");
+        }
     }
 }

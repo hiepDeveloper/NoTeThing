@@ -1,180 +1,214 @@
-/* ===== STICKY NOTE STYLES ===== */
-
-/* Container chính - màu vàng đặc trưng */
+/* ===== THEME VARIABLES (Adaptive) ===== */
 .root {
-    -fx-background-color: #fdfd86;  /* Màu vàng sticky note */
+    /* MÀU GIAO DIỆN SÁNG */
+    -note-yellow: #FFF4C3; -note-yellow-header: #FFED99;
+    -note-green:  #D1F2D6; -note-green-header:  #B7E9BE;
+    -note-blue:   #D0E7FF; -note-blue-header:   #B3D7FF;
+    -note-orange: #FFE4D1; -note-orange-header: #FFCBA4;
+    -note-red:    #FFD6D6; -note-red-header:    #FFB3B3;
+    -note-purple: #EBDFFF; -note-purple-header: #D6BCFA;
+    -note-gray:   #D1F0F0; -note-gray-header:   #A5E8E8;
+    
+    -note-text-color: #2D3748;
+    -note-prompt-color: #718096;
+    -note-list-bg: #F7FAFC;
+    -note-list-text: #2D3748;
+    -note-selection-bg: rgba(0,0,0,0.05);
+    -note-primary-btn: #FFED99;
+    -note-opacity-factor: 0.8;
+    -note-popup-bg: #F1F5F9;
+    -note-popup-border: #E2E8F0;
+}
+
+.dark {
+    /* MÀU GIAO DIỆN TỐI */
+    -note-yellow: #524B26; -note-yellow-header: #453F1F;
+    -note-green:  #2D4D36; -note-green-header:  #23422A;
+    -note-blue:   #264766; -note-blue-header:   #1E3A5F;
+    -note-orange: #5C3D26; -note-orange-header: #4D311A;
+    -note-red:    #5C2D2D; -note-red-header:    #4D1F1F;
+    -note-purple: #3F335C; -note-purple-header: #32264D;
+    -note-gray:   #2D4F4F; -note-gray-header:   #204040;
+    
+    -note-text-color: #EDF2F7;
+    -note-prompt-color: #A0AEC0;
+    -note-list-bg: #1A202C;
+    -note-list-text: #EDF2F7;
+    -note-selection-bg: rgba(255,255,255,0.1);
+    -note-primary-btn: #453F1F;
+    -note-popup-bg: #111827;
+    -note-popup-border: #1F2937;
+}
+
+/* ===== BASE STYLES ===== */
+.root {
+    -fx-background-color: transparent; 
     -fx-background-radius: 0;
     -fx-border-width: 0;
 }
 
-/* Header bar - chứa nút + và x */
+.sticky-note-root {
+    /* Đã được ghi đè bởi setStyle trong Controller để hỗ trợ opacity */
+}
+
 .header-bar {
-    -fx-background-color: #fcfc74;  /* Vàng đậm hơn một chút */
+    /* Đã được ghi đè bởi setStyle trong Controller để hỗ trợ opacity */
     -fx-padding: 2 5 2 5;
     -fx-alignment: center-left;
     -fx-min-height: 45px;
 }
 
-.drag-handle {
-    -fx-text-fill: #888888;
-    -fx-font-size: 20px;
-    -fx-cursor: move;
-    -fx-min-width: 30px;
-    -fx-min-height: 30px;
-    -fx-pref-width: 30px;
-    -fx-pref-height: 30px;
+.drag-handle { 
+    -fx-text-fill: -note-prompt-color; 
+    -fx-font-size: 18px; 
+    -fx-cursor: move; 
     -fx-alignment: center;
-    -fx-text-alignment: center;
+    -fx-min-width: 34px; -fx-min-height: 34px;
+    -fx-pref-width: 34px; -fx-pref-height: 34px;
+    -fx-background-color: rgba(0, 0, 0, 0.03);
+    -fx-background-radius: 8px;
 }
+.drag-handle:hover { -fx-text-fill: -note-text-color; -fx-background-color: -note-selection-bg; }
 
-.drag-handle:hover {
-    -fx-text-fill: #333333;
-    -fx-background-color: rgba(0, 0, 0, 0.05);
-    -fx-background-radius: 5;
-}
+.icon-button { -fx-background-color: transparent; -fx-text-fill: -note-text-color; -fx-cursor: hand; -fx-background-radius: 50%; -fx-min-width: 30px; -fx-min-height: 30px; -fx-padding: 0; }
+.icon-button:hover { -fx-background-color: -note-selection-bg; }
 
-/* Nút + và x */
-.icon-button {
-    -fx-background-color: transparent;
-    -fx-text-fill: #555555;
-    -fx-font-weight: bold;
-    -fx-font-size: 14px;
-    -fx-cursor: hand;
-    -fx-background-radius: 50%;
-    -fx-min-width: 30px;
-    -fx-min-height: 30px;
-    -fx-pref-width: 30px;
-    -fx-pref-height: 30px;
-    -fx-content-display: center;
-    -fx-padding: 0;
-}
-
-.icon-button:hover {
-    -fx-background-color: rgba(0, 0, 0, 0.1);  /* Hiệu ứng hover */
-}
-
-/* Title Field - Tiêu đề ghi chú trên header */
 .title-field {
-    -fx-background-color: transparent;
-    -fx-font-weight: bold;
-    -fx-font-size: 15px;
-    -fx-pref-height: 30px;
-    -fx-padding: 0 5 0 5;
-    -fx-text-fill: #333333;
-    -fx-prompt-text-fill: #888888;
-    -fx-border-width: 0;
-    -fx-background-insets: 0;
+    -fx-background-color: transparent; -fx-font-weight: bold; -fx-padding: 0 5 0 5;
+    /* Sử dụng font Fuzzy Bubbles tự tải lên */
+    -fx-font-family: "Fuzzy Bubbles", "Patrick Hand", "Itim", "Segoe Print", cursive;
+    -fx-font-size: 16px; 
+    -fx-text-fill: -note-text-color; -fx-prompt-text-fill: -note-prompt-color;
 }
+.title-field:focused { -fx-background-color: rgba(255,255,255,0.05); }
 
-.title-field:focused {
-    -fx-background-color: rgba(255, 255, 255, 0.2);
+.content-area, .content-area .text {
+    -fx-background-color: transparent; -fx-padding: 10;
+    -fx-font-family: "Fuzzy Bubbles", "Patrick Hand", "Itim", "Segoe Print", cursive;
+    -fx-font-size: 19px;
+    -fx-text-fill: -note-text-color;
 }
+.content-area .content { -fx-background-color: transparent; }
+.content-area:focused { -fx-background-color: transparent; -fx-box-border: transparent; }
 
-/* TextArea - vùng nhập văn bản */
-.content-area {
-    -fx-background-color: transparent;  /* Trong suốt để thấy màu vàng */
-    -fx-background-insets: 0;
-    -fx-padding: 10;
-    -fx-font-family: "Segoe UI", sans-serif;
-    -fx-font-size: 16px;
-    -fx-text-fill: #333333;
-}
-
-.content-area .content {
-    -fx-background-color: transparent;
-}
-
-.content-area:focused {
-    -fx-background-color: transparent;
-    -fx-box-border: transparent;  /* Không có viền khi focus */
-}
-
-/* Scrollbar - thanh cuộn mờ nhạt */
-.content-area .scroll-bar:vertical {
-    -fx-background-color: transparent;
-}
-
-.content-area .scroll-bar .thumb {
-    -fx-background-color: rgba(0,0,0,0.1);  /* Thumb mờ */
-}
+/* Scrollbar */
+.content-area .scroll-bar .thumb { -fx-background-color: rgba(0,0,0,0.1); }
+.dark .content-area .scroll-bar .thumb { -fx-background-color: rgba(255,255,255,0.1); }
 
 /* ===== NOTE LIST STYLES ===== */
-
 .note-list-root {
-    -fx-background-color: white; /* Nền trắng sạch sẽ */
+    -fx-background-color: -note-list-bg; 
 }
-
 .list-title {
-    -fx-font-size: 24px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #333;
-    -fx-padding: 10 0 10 0;
+    -fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: -note-list-text; -fx-padding: 10 0 10 0;
 }
+.list-title-field { -fx-text-fill: -note-text-color; }
 
-.note-list {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-}
-
-/* Style cho từng item trong list - giả lập sticky note nhỏ */
+.note-list { -fx-background-color: transparent; -fx-border-color: transparent; }
 .note-list .list-cell {
-    -fx-background-color: #fdfd86; /* Màu vàng giống note */
-    -fx-background-radius: 5;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 3, 0, 1, 1); /* Đổ bóng nhẹ */
-    -fx-padding: 10px;
-    -fx-margin: 5px; /* Khoảng cách giữa các note */
-    -fx-border-color: transparent;
+    -fx-background-color: -note-yellow;
+    -fx-background-radius: 10;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 3, 0, 1, 1);
+    -fx-padding: 12px;
+    -fx-margin: 8px;
 }
+.note-list .list-cell:empty { -fx-background-color: transparent; -fx-effect: null; }
+.note-list .list-cell:filled:selected { -fx-border-color: -fx-accent; -fx-border-width: 2; }
 
-.note-list .list-cell:empty {
-    -fx-background-color: transparent;
-    -fx-effect: null;
-}
-
-.note-list .list-cell:filled:selected {
-    -fx-background-color: #fffca0; /* Sáng hơn khi chọn */
-    -fx-border-color: #dcdc40; /* Viền vàng đậm hơn */
-}
-
-.note-list .list-cell:filled:hover {
-    -fx-background-color: #ffffa0;
-}
-
-/* Nút thêm mới trong Note List */
 .primary-button {
-    -fx-background-color: #ffd700; /* Màu vàng đậm */
-    -fx-text-fill: #333;
-    -fx-font-weight: bold;
-    -fx-cursor: hand;
-    -fx-background-radius: 20; /* Bo tròn */
+    -fx-background-color: -note-primary-btn; 
+    -fx-text-fill: -note-text-color; 
+    -fx-font-weight: bold; 
+    -fx-cursor: hand; 
+    -fx-background-radius: 20; 
     -fx-padding: 8 15 8 15;
 }
+.primary-button .ikonli-font-icon { -fx-icon-color: -note-text-color; }
+.primary-button:hover { -fx-opacity: 0.85; }
 
-.primary-button:hover {
-    -fx-background-color: #ffcc00;
-}
-
-/* Nút hành động trong item list (Hiện/Xóa) */
 .action-button {
-    -fx-background-color: transparent;
-    -fx-text-fill: #555555;
+    -fx-background-color: transparent; -fx-text-fill: -note-text-color; -fx-cursor: hand; -fx-min-width: 32px; -fx-min-height: 32px; -fx-padding: 0;
+}
+.action-button:hover { -fx-background-color: -note-selection-bg; }
+.delete-button { -fx-text-fill: #E53E3E; }
+
+/* ===== COLOR THEMES ===== */
+.sticky-note-root.color-yellow { -fx-background-color: -note-yellow; }
+.color-yellow .header-bar { -fx-background-color: -note-yellow-header; }
+.list-cell.color-yellow { -fx-background-color: -note-yellow; }
+
+.sticky-note-root.color-green { -fx-background-color: -note-green; }
+.color-green .header-bar { -fx-background-color: -note-green-header; }
+.list-cell.color-green  { -fx-background-color: -note-green; }
+
+.sticky-note-root.color-blue { -fx-background-color: -note-blue; }
+.color-blue .header-bar { -fx-background-color: -note-blue-header; }
+.list-cell.color-blue   { -fx-background-color: -note-blue; }
+
+.sticky-note-root.color-orange { -fx-background-color: -note-orange; }
+.color-orange .header-bar { -fx-background-color: -note-orange-header; }
+.list-cell.color-orange   { -fx-background-color: -note-orange; }
+
+.sticky-note-root.color-red { -fx-background-color: -note-red; }
+.color-red .header-bar { -fx-background-color: -note-red-header; }
+.list-cell.color-red   { -fx-background-color: -note-red; }
+
+.sticky-note-root.color-purple { -fx-background-color: -note-purple; }
+.color-purple .header-bar { -fx-background-color: -note-purple-header; }
+.list-cell.color-purple { -fx-background-color: -note-purple; }
+
+.sticky-note-root.color-gray { -fx-background-color: -note-gray; }
+.color-gray .header-bar { -fx-background-color: -note-gray-header; }
+.list-cell.color-gray   { -fx-background-color: -note-gray; }
+
+/* Color Menu */
+.color-menu {
+    -fx-background-color: -note-popup-bg; 
+    -fx-background-radius: 12; 
+    -fx-border-radius: 12; 
+    -fx-border-color: -note-popup-border; 
+    -fx-border-width: 1;
+    -fx-padding: 10;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 15, 0, 0, 5);
+}
+
+.color-preview.color-yellow   { -fx-fill: -note-yellow; }
+.color-preview.color-green    { -fx-fill: -note-green; }
+.color-preview.color-blue     { -fx-fill: -note-blue; }
+.color-preview.color-orange   { -fx-fill: -note-orange; }
+.color-preview.color-red      { -fx-fill: -note-red; }
+.color-preview.color-purple   { -fx-fill: -note-purple; }
+.color-preview.color-gray     { -fx-fill: -note-gray; }
+
+.color-option { 
+    -fx-min-width: 26; -fx-min-height: 26; 
+    -fx-background-radius: 50%; 
+    -fx-border-color: rgba(0,0,0,0.15); /* Viền rõ hơn để chống lóa màu */
+    -fx-border-width: 1;
+    -fx-cursor: hand; 
+}
+.dark .color-option {
+    -fx-border-color: rgba(255,255,255,0.25); /* Viền sáng hơn trong chế độ Tối */
+}
+.color-option:hover { -fx-scale-x: 1.25; -fx-scale-y: 1.25; -fx-border-color: rgba(0,0,0,0.4); }
+.dark .color-option:hover { -fx-border-color: rgba(255,255,255,0.6); }
+
+/* Slider Styling */
+.color-menu .slider {
     -fx-cursor: hand;
-    -fx-background-radius: 5px;
-    -fx-min-width: 32px;
-    -fx-min-height: 32px;
-    -fx-pref-width: 32px;
-    -fx-pref-height: 32px;
-    -fx-padding: 0;
+    -fx-padding: 10 0 10 0;
 }
-
-.action-button:hover {
-    -fx-background-color: rgba(0,0,0,0.05);
+.color-menu .slider .track { 
+    -fx-background-color: -note-popup-border; 
+    -fx-pref-height: 6px; 
+    -fx-background-radius: 3px;
+    -fx-background-insets: -5 0 -5 0, 0; 
+    -fx-background-color: transparent, -note-popup-border;
 }
-
-.delete-button {
-    -fx-text-fill: #d32f2f;
-}
-
-.delete-button:hover {
-    -fx-background-color: rgba(211, 47, 47, 0.1);
+.color-menu .slider .thumb { 
+    -fx-background-color: -note-text-color; 
+    -fx-scale-x: 1.0; 
+    -fx-scale-y: 1.0;
+    -fx-background-radius: 50%;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 4, 0, 0, 1);
 }

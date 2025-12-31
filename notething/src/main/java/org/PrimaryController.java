@@ -100,6 +100,24 @@ public class PrimaryController {
             updateAlwaysOnTopUI(newVal);
             NoteManager.getInstance().saveNotes();
         });
+        
+        // Áp dụng màu sắc hiện tại
+        applyColor(note.getColor());
+        
+        // Lắng nghe thay đổi màu sắc
+        note.colorProperty().addListener((obs, oldVal, newVal) -> {
+            applyColor(newVal);
+            NoteManager.getInstance().saveNotes();
+        });
+        
+        // Áp dụng độ trong suốt hiện tại
+        applyOpacity(note.getOpacity());
+        
+        // Lắng nghe thay đổi độ trong suốt
+        note.opacityProperty().addListener((obs, oldVal, newVal) -> {
+            applyOpacity(newVal.doubleValue());
+            NoteManager.getInstance().saveNotes();
+        });
     }
 
     /**
@@ -231,5 +249,148 @@ public class PrimaryController {
             }
         }
     }
-}
+    
+    /**
+     * Hiển thị bảng chọn màu.
+     */
+    @FXML
+    private void showColorPicker() {
+        javafx.scene.layout.VBox pickerRoot = new javafx.scene.layout.VBox(15);
+        pickerRoot.getStyleClass().add("color-menu");
+        pickerRoot.setPadding(new javafx.geometry.Insets(15));
+        pickerRoot.setPrefWidth(220);
+        
+        // 1. Tiêu đề
+        javafx.scene.control.Label titleLabel = new javafx.scene.control.Label("Màu sắc & Độ trong");
+        titleLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: -note-text-color;");
+        
+        // 2. Palette màu
+        javafx.scene.layout.HBox colorPalette = new javafx.scene.layout.HBox(8);
+        colorPalette.setAlignment(javafx.geometry.Pos.CENTER);
+        
+        String[] colors = {"color-yellow", "color-green", "color-blue", "color-orange", "color-red", "color-purple", "color-gray"};
+        for (String colorClass : colors) {
+            javafx.scene.shape.Circle circle = new javafx.scene.shape.Circle(12);
+            circle.getStyleClass().addAll("color-option", "color-preview", colorClass);
+            circle.setOnMouseClicked(e -> {
+                if (note != null) {
+                    note.setColor(colorClass);
+                    NoteManager.getInstance().saveNotes();
+                }
+            });
+            colorPalette.getChildren().add(circle);
+        }
+        
+        // 3. Slider độ trong suốt
+        javafx.scene.layout.VBox opacityBox = new javafx.scene.layout.VBox(5);
+        javafx.scene.control.Label opacityLabel = new javafx.scene.control.Label("Độ trong suốt");
+        opacityLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: -note-prompt-color;");
+        
+        javafx.scene.control.Slider opacitySlider = new javafx.scene.control.Slider(0.3, 1.0, note != null ? note.getOpacity() : 1.0);
+        opacitySlider.setBlockIncrement(0.1);
+        opacitySlider.valueProperty().addListener((obs, old, newVal) -> {
+            if (note != null) {
+                note.setOpacity(newVal.doubleValue());
+            }
+        });
+        opacityBox.getChildren().addAll(opacityLabel, opacitySlider);
+        
+        pickerRoot.getChildren().addAll(titleLabel, colorPalette, opacityBox);
+        
+        // Áp dụng stylesheet và theme cho popup
+        pickerRoot.getStylesheets().add(App.class.getResource("css/styles.css").toExternalForm());
+        if (App.isDarkMode()) {
+            pickerRoot.getStyleClass().add("dark");
+        }
+        
+        javafx.stage.Popup popup = new javafx.stage.Popup();
+        popup.getContent().add(pickerRoot);
+        popup.setAutoHide(true);
+        
+        javafx.scene.Node source = (javafx.scene.Node) alwaysOnTopButton.getParent().getChildrenUnmodifiable().get(1);
+        javafx.geometry.Bounds bounds = source.localToScreen(source.getBoundsInLocal());
+        popup.show(rootPane.getScene().getWindow(), bounds.getMinX(), bounds.getMaxY() + 5);
+    }
+    
+    private void applyColor(String colorClass) {
+        rootPane.getStyleClass().removeIf(s -> s.startsWith("color-"));
+        rootPane.getStyleClass().add(colorClass);
+        // Cập nhật lại độ trong sau khi đổi màu
+        if (note != null) applyOpacity(note.getOpacity());
+    }
+    
+    private void applyOpacity(double opacity) {
+        // Áp dụng độ trong suốt cho nền nhưng giữ nội dung rõ ràng
+        // Chúng ta cập nhật biến CSS cục bộ để background-color sử dụng
+        rootPane.setStyle("-fx-background-color: derive(-note-bg-base, 0%); -fx-opacity: 1.0;"); 
+        // Thực tế, chúng ta sẽ điều chỉnh -fx-background-color của rootPane dựa trên màu hiện tại
+        String colorVar = "-note-yellow";
+        String colorHeaderVar = "-note-yellow-header";
+        
+        if (note != null) {
+            switch (note.getColor()) {
+                case "color-green": colorVar = "-note-green"; colorHeaderVar = "-note-green-header"; break;
+                case "color-blue": colorVar = "-note-blue"; colorHeaderVar = "-note-blue-header"; break;
+                case "color-orange": colorVar = "-note-orange"; colorHeaderVar = "-note-orange-header"; break;
+                case "color-red": colorVar = "-note-red"; colorHeaderVar = "-note-red-header"; break;
+                case "color-purple": colorVar = "-note-purple"; colorHeaderVar = "-note-purple-header"; break;
+                case "color-gray": colorVar = "-note-gray"; colorHeaderVar = "-note-gray-header"; break;
+            }
+        }
 
+        // Tạo chuỗi style để ghi đè màu nền với độ alpha
+        // Lưu ý: JavaFX hỗ trợ định dạng ladder hoặc hsb/rgba trong setStyle
+        // Ở đây ta dùng hàm ladder hoặc set trực tiếp qua một biến phụ trong CSS nếu có thể
+        // Nhưng cách nhanh nhất là dùng -fx-background-color: derive(..., ...) kết hợp một trick
+        
+        // Trick: Sử dụng color-mix hoặc rgba trực tiếp nếu biết mã màu. 
+        // Vì ta dùng biến CSS, ta sẽ ép kiểu rootPane có độ mờ nhưng các con thì không
+        // Tuy nhiên, logic chuẩn nhất là Stage TRANSPARENT + RootPane background rgba.
+        
+        // Cập nhật: Tôi sẽ dùng CSS variable để quản lý opacity cho đồng bộ
+        rootPane.setStyle("-fx-background-color: " + colorVar + "; -fx-opacity: " + opacity + ";");
+        // Đợi đã, người dùng muốn nội dung RÕ RÀNG. setOpacity() sẽ làm mờ cả chữ.
+        // Tôi phải dùng kỹ thuật khác.
+        
+        // Kỹ thuật đúng: `-fx-background-color: rgba(<r>,<g>,<b>, <a>)`
+        // Tôi sẽ lấy mã màu hex từ CSS và chuyển sang RGBA
+        String hex = getHexForColor(note != null ? note.getColor() : "color-yellow");
+        String headerHex = getHexForHeader(note != null ? note.getColor() : "color-yellow");
+        
+        rootPane.setStyle("-fx-background-color: " + toRgba(hex, opacity) + "; -fx-background-radius: 12px;");
+        headerBox.setStyle("-fx-background-color: " + toRgba(headerHex, opacity) + "; -fx-background-radius: 12px 12px 0 0;");
+    }
+
+    private String toRgba(String hex, double opacity) {
+        int r = Integer.valueOf(hex.substring(1, 3), 16);
+        int g = Integer.valueOf(hex.substring(3, 5), 16);
+        int b = Integer.valueOf(hex.substring(5, 7), 16);
+        return String.format("rgba(%d, %d, %d, %.2f)", r, g, b, opacity);
+    }
+
+    private String getHexForColor(String colorClass) {
+        boolean dark = App.isDarkMode();
+        switch (colorClass) {
+            case "color-green":  return dark ? "#2D4D36" : "#D1F2D6";
+            case "color-blue":   return dark ? "#264766" : "#D0E7FF";
+            case "color-orange": return dark ? "#5C3D26" : "#FFE4D1";
+            case "color-red":    return dark ? "#5C2D2D" : "#FFD6D6";
+            case "color-purple": return dark ? "#3F335C" : "#EBDFFF";
+            case "color-gray":   return dark ? "#2D4F4F" : "#D1F0F0";
+            default:             return dark ? "#524B26" : "#FFF4C3";
+        }
+    }
+
+    private String getHexForHeader(String colorClass) {
+        boolean dark = App.isDarkMode();
+        switch (colorClass) {
+            case "color-green":  return dark ? "#23422A" : "#B7E9BE";
+            case "color-blue":   return dark ? "#1E3A5F" : "#B3D7FF";
+            case "color-orange": return dark ? "#4D311A" : "#FFCBA4";
+            case "color-red":    return dark ? "#4D1F1F" : "#FFB3B3";
+            case "color-purple": return dark ? "#32264D" : "#D6BCFA";
+            case "color-gray":   return dark ? "#204040" : "#A5E8E8";
+            default:             return dark ? "#453F1F" : "#FFED99";
+        }
+    }
+}

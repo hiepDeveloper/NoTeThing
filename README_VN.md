@@ -3,18 +3,21 @@
 [![Tiếng Việt](https://img.shields.io/badge/Ngôn_Ngữ-Tiếng_Việt-green?style=logo&logo=google-translate&logoColor=white)](#)
 [![English](https://img.shields.io/badge/Language-English-blue?style=logo&logo=google-translate&logoColor=white)](./README.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=logo&logo=opensourceinitiative&logoColor=white)](./LICENSE)
-[![Phiên bản](https://img.shields.io/badge/Phiên_bản-0.1.0-orange?style=logo&logo=github&logoColor=white)](./CHANGELOG_VN.md)
+[![Phiên bản](https://img.shields.io/badge/Phiên_bản-0.2.0-orange?style=logo&logo=github&logoColor=white)](./CHANGELOG_VN.md)
 [![Java](https://img.shields.io/badge/Java-21+-red?style=logo&logo=openjdk&logoColor=white)](https://openjdk.org/)
 
-Một ứng dụng ghi chú dán (Sticky Notes) nhẹ và hiện đại, được xây dựng bằng JavaFX và AtlantaFX.
+Ứng dụng ghi chú nhẹ, hiện đại được xây dựng bằng JavaFX và AtlantaFX.
 
-## Tính năng chính
-- ✨ **Giao diện hiện đại**: Sử dụng AtlantaFX mang lại cái nhìn bóng bẩy và chuyên nghiệp.
-- 📌 **Ghim trên cùng (Always on Top)**: Giữ cho ghi chú của bạn luôn hiển thị trên các cửa sổ khác.
-- 🎨 **Tùy biến cao**: Tùy chỉnh màu sắc và phong cách riêng cho từng ghi chú.
-- 💾 **Tự động lưu**: Không bao giờ lo mất dữ liệu; mọi thay đổi đều được lưu tự động.
-- 📦 **Quản lý ghi chú**: Quản lý tất cả ghi chú của bạn ở một danh sách tập trung.
-- 🖼️ **Thiết kế tối giản**: Giao diện không khung, có thể kéo thả và thay đổi kích thước linh hoạt.
+## Tính năng
+- 🌙 **Chế độ tối (Dark Mode)**: Chuyển đổi giữa giao diện Sáng và Tối với cài đặt được lưu trữ bền vững.
+- ✨ **Giao diện hiện đại**: Sử dụng AtlantaFX để mang lại vẻ ngoài bóng bẩy và chuyên nghiệp.
+- 📌 **Luôn hiển thị trên cùng**: Giữ cho các ghi chú của bạn luôn hiển thị trên các cửa sổ khác.
+- 🍷 **Độ trong suốt & Kính mờ**: Tùy chỉnh độ mờ của từng ghi chú với hiệu ứng "kính mờ" (Acrylic) nguyên bản của Windows.
+- ✍️ **Font chữ viết tay**: Hỗ trợ các font chữ viết tay (như Fuzzy Bubbles, Patrick Hand) hỗ trợ tiếng Việt hoàn hảo.
+- 🎨 **Chủ đề thích ứng**: 7 bộ màu sắc được tuyển chọn với thanh tiêu đề và nền cửa sổ thích ứng linh hoạt.
+- 💾 **Tự động lưu**: Không bao giờ mất ý tưởng của bạn; nội dung được lưu tự động.
+- 📦 **Quản lý ghi chú**: Dễ dàng quản lý tất cả ghi chú của bạn trong một danh sách tập trung.
+- 🖼️ **Thiết kế không khung**: Giao diện sạch sẽ, có thể kéo thả và thay đổi kích thước dễ dàng.
 
 ## 🚀 Chạy nhanh (Bản Portable)
 Để trải nghiệm nhanh mà không cần cài đặt Java, bạn có thể sử dụng bản Portable:

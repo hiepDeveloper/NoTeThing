@@ -29,6 +29,7 @@ public class NoteManager {
     // Đường dẫn lưu trữ: UserHome/.notething/notes.dat
     private static final String DATA_DIR = System.getProperty("user.home") + File.separator + ".notething";
     private static final String DATA_FILE = DATA_DIR + File.separator + "notes.dat";
+    private static final String SETTINGS_FILE = DATA_DIR + File.separator + "settings.properties";
 
     private NoteManager() {
         notes = FXCollections.observableArrayList();
@@ -74,7 +75,9 @@ public class NoteManager {
                 note.getWidth(),
                 note.getHeight(),
                 isOpen,
-                note.isAlwaysOnTop()
+                note.isAlwaysOnTop(),
+                note.getColor(),
+                note.getOpacity()
             ));
         }
         
@@ -161,6 +164,36 @@ public class NoteManager {
 
     private boolean isTitleExists(String title) {
         return notes.stream().anyMatch(n -> n.getTitle() != null && n.getTitle().equalsIgnoreCase(title));
+    }
+
+    /**
+     * Lưu cài đặt ứng dụng.
+     */
+    public void saveSettings(boolean isDarkMode) {
+        java.util.Properties props = new java.util.Properties();
+        props.setProperty("darkMode", String.valueOf(isDarkMode));
+        try (FileOutputStream out = new FileOutputStream(SETTINGS_FILE)) {
+            props.store(out, "NoTeThing Settings");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Tải cài đặt ứng dụng.
+     */
+    public boolean loadDarkMode() {
+        java.util.Properties props = new java.util.Properties();
+        File file = new File(SETTINGS_FILE);
+        if (file.exists()) {
+            try (FileInputStream in = new FileInputStream(file)) {
+                props.load(in);
+                return Boolean.parseBoolean(props.getProperty("darkMode", "false"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
     }
 }
 

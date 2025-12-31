@@ -3,15 +3,18 @@
 [![English](https://img.shields.io/badge/Language-English-blue?style=logo&logo=google-translate&logoColor=white)](#)
 [![Tiếng Việt](https://img.shields.io/badge/Ngôn_Ngữ-Tiếng_Việt-green?style=logo&logo=google-translate&logoColor=white)](./README_VN.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=logo&logo=opensourceinitiative&logoColor=white)](./LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.1.0-orange?style=logo&logo=github&logoColor=white)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-0.2.0-orange?style=logo&logo=github&logoColor=white)](./CHANGELOG.md)
 [![Java](https://img.shields.io/badge/Java-21+-red?style=logo&logo=openjdk&logoColor=white)](https://openjdk.org/)
 
 A lightweight, modern Sticky Notes application built with JavaFX and AtlantaFX.
 
 ## Features
+- 🌙 **Dark Mode**: Toggle between Light and Dark themes with persistent settings.
 - ✨ **Modern UI**: Uses AtlantaFX for a sleek and professional look.
 - 📌 **Always on Top**: Keep your notes always visible on top of other windows.
-- 🎨 **Customizable**: Personalize each note with different colors and styles.
+- 🍷 **Opacity & Glass Effect**: Customize note transparency with a modern native Windows "Acrylic" effect.
+- ✍️ **Handwriting Fonts**: Support for beautiful handwriting fonts (Fuzzy Bubbles, Patrick Hand) with full Vietnamese support.
+- 🎨 **Adaptive Themes**: 7 curated color themes with adaptive headers and backgrounds.
 - 💾 **Auto-save**: Never lose your thoughts; content is saved automatically.
 - 📦 **Note Manager**: Easily manage all your notes in one centralized list.
 - 🖼️ **Frameless Design**: Clean, draggable, and resizable interface.

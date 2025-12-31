@@ -10,7 +10,7 @@
 <?import javafx.geometry.Insets?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
-<VBox fx:id="rootPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.PrimaryController" styleClass="root">
+<VBox fx:id="rootPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.PrimaryController" styleClass="root, sticky-note-root">
    <children>
       <HBox fx:id="headerBox" styleClass="header-bar" alignment="CENTER_LEFT" minHeight="45" prefHeight="45">
          <children>
@@ -31,6 +31,11 @@
                   <Button onAction="#openNoteList" styleClass="icon-button">
                      <graphic>
                         <FontIcon iconLiteral="bi-list" iconSize="18" />
+                     </graphic>
+                  </Button>
+                  <Button onAction="#showColorPicker" styleClass="icon-button">
+                     <graphic>
+                        <FontIcon iconLiteral="bi-palette" iconSize="18" />
                      </graphic>
                   </Button>
                   <Button fx:id="alwaysOnTopButton" onAction="#toggleAlwaysOnTop" styleClass="icon-button">

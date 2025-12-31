@@ -22,8 +22,10 @@ public class NoteData implements Serializable {
     private double height;
     private boolean isOpen;
     private boolean alwaysOnTop;
+    private String color;
+    private double opacity;
     
-    public NoteData(String id, String title, String content, double x, double y, double width, double height, boolean isOpen, boolean alwaysOnTop) {
+    public NoteData(String id, String title, String content, double x, double y, double width, double height, boolean isOpen, boolean alwaysOnTop, String color, double opacity) {
         this.id = id;
         this.title = title;
         this.content = content;
@@ -33,6 +35,12 @@ public class NoteData implements Serializable {
         this.height = height;
         this.isOpen = isOpen;
         this.alwaysOnTop = alwaysOnTop;
+        this.color = color;
+        this.opacity = (opacity <= 0) ? 1.0 : opacity;
+    }
+    
+    public NoteData(String id, String title, String content, double x, double y, double width, double height, boolean isOpen, boolean alwaysOnTop, String color) {
+        this(id, title, content, x, y, width, height, isOpen, alwaysOnTop, color, 1.0);
     }
     
     public String getId() { return id; }
@@ -44,5 +52,6 @@ public class NoteData implements Serializable {
     public double getHeight() { return height; }
     public boolean isOpen() { return isOpen; }
     public boolean isAlwaysOnTop() { return alwaysOnTop; }
+    public String getColor() { return color; }
+    public double getOpacity() { return opacity; }
 }
-
