@@ -161,6 +161,7 @@ public class App extends Application {
             // Cấu hình Controller
             PrimaryController controller = fxmlLoader.getController();
             controller.setNote(note);
+            note.setController(controller);
             
             // Hiển thị nếu là ghi chú mới hoặc đang mở
             if (data == null || data.isOpen()) {
@@ -169,8 +170,6 @@ public class App extends Application {
                 javafx.application.Platform.runLater(() -> {
                     note.bindTitleToStage();
                     controller.focusContent();
-                    // Áp dụng Acrylic/Blur hiệu ứng hệ thống
-                    GlassHelper.applyBlur(stage);
                 });
             } else {
                 // Nếu note cũ đang đóng, vẫn bind để đồng bộ data
@@ -224,6 +223,9 @@ public class App extends Application {
         for (Note note : NoteManager.getInstance().getNotes()) {
             if (note.getStage() != null && note.getStage().getScene() != null) {
                 updateRootTheme(note.getStage().getScene().getRoot());
+                if (note.getController() != null) {
+                    note.getController().refreshTheme();
+                }
             }
         }
     }

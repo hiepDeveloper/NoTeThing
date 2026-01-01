@@ -320,40 +320,7 @@ public class PrimaryController {
     }
     
     private void applyOpacity(double opacity) {
-        // Áp dụng độ trong suốt cho nền nhưng giữ nội dung rõ ràng
-        // Chúng ta cập nhật biến CSS cục bộ để background-color sử dụng
-        rootPane.setStyle("-fx-background-color: derive(-note-bg-base, 0%); -fx-opacity: 1.0;"); 
-        // Thực tế, chúng ta sẽ điều chỉnh -fx-background-color của rootPane dựa trên màu hiện tại
-        String colorVar = "-note-yellow";
-        String colorHeaderVar = "-note-yellow-header";
-        
-        if (note != null) {
-            switch (note.getColor()) {
-                case "color-green": colorVar = "-note-green"; colorHeaderVar = "-note-green-header"; break;
-                case "color-blue": colorVar = "-note-blue"; colorHeaderVar = "-note-blue-header"; break;
-                case "color-orange": colorVar = "-note-orange"; colorHeaderVar = "-note-orange-header"; break;
-                case "color-red": colorVar = "-note-red"; colorHeaderVar = "-note-red-header"; break;
-                case "color-purple": colorVar = "-note-purple"; colorHeaderVar = "-note-purple-header"; break;
-                case "color-gray": colorVar = "-note-gray"; colorHeaderVar = "-note-gray-header"; break;
-            }
-        }
-
-        // Tạo chuỗi style để ghi đè màu nền với độ alpha
-        // Lưu ý: JavaFX hỗ trợ định dạng ladder hoặc hsb/rgba trong setStyle
-        // Ở đây ta dùng hàm ladder hoặc set trực tiếp qua một biến phụ trong CSS nếu có thể
-        // Nhưng cách nhanh nhất là dùng -fx-background-color: derive(..., ...) kết hợp một trick
-        
-        // Trick: Sử dụng color-mix hoặc rgba trực tiếp nếu biết mã màu. 
-        // Vì ta dùng biến CSS, ta sẽ ép kiểu rootPane có độ mờ nhưng các con thì không
-        // Tuy nhiên, logic chuẩn nhất là Stage TRANSPARENT + RootPane background rgba.
-        
-        // Cập nhật: Tôi sẽ dùng CSS variable để quản lý opacity cho đồng bộ
-        rootPane.setStyle("-fx-background-color: " + colorVar + "; -fx-opacity: " + opacity + ";");
-        // Đợi đã, người dùng muốn nội dung RÕ RÀNG. setOpacity() sẽ làm mờ cả chữ.
-        // Tôi phải dùng kỹ thuật khác.
-        
-        // Kỹ thuật đúng: `-fx-background-color: rgba(<r>,<g>,<b>, <a>)`
-        // Tôi sẽ lấy mã màu hex từ CSS và chuyển sang RGBA
+        // Calculate RGBA values for transparency
         String hex = getHexForColor(note != null ? note.getColor() : "color-yellow");
         String headerHex = getHexForHeader(note != null ? note.getColor() : "color-yellow");
         
@@ -391,6 +358,15 @@ public class PrimaryController {
             case "color-purple": return dark ? "#32264D" : "#D6BCFA";
             case "color-gray":   return dark ? "#204040" : "#A5E8E8";
             default:             return dark ? "#453F1F" : "#FFED99";
+        }
+    }
+
+    /**
+     * Làm mới giao diện khi thay đổi Theme.
+     */
+    public void refreshTheme() {
+        if (note != null) {
+            applyOpacity(note.getOpacity());
         }
     }
 }
