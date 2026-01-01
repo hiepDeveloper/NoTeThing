@@ -22,6 +22,7 @@ public class Note {
     private final javafx.beans.property.BooleanProperty alwaysOnTop;
     private final StringProperty color;
     private final javafx.beans.property.DoubleProperty opacity;
+
     
     private Stage stage;
     private String id;
@@ -95,6 +96,8 @@ public class Note {
     public double getOpacity() { return opacity.get(); }
     public void setOpacity(double value) { opacity.set(value); }
     public javafx.beans.property.DoubleProperty opacityProperty() { return opacity; }
+    
+
     
     public Stage getStage() { return stage; }
     public void setStage(Stage stage) { this.stage = stage; }

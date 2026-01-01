@@ -141,6 +141,9 @@ public class App extends Application {
             
             ResizeHelper.addResizeListener(stage);
             
+            // Kích hoạt hiệu ứng Blur/Acrylic cho Windows
+            GlassHelper.enableBlur(stage);
+            
             // Khởi tạo model Note
             Note note = new Note(stage, noteId);
             if (data != null) {
