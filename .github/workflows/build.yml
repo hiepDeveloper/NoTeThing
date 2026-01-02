@@ -29,6 +29,13 @@ jobs:
       run: mvn clean package
       working-directory: notething
 
+    - name: Get Version
+      id: get_version
+      run: |
+        VERSION=$(mvn -f notething/pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout)
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+      shell: bash
+
     - name: Prepare Package Folder
       run: |
         mkdir -p package-in
@@ -40,14 +47,14 @@ jobs:
       run: |
         jpackage --name "NoTeThing" `
                  --vendor "hiepDeveloper" `
-                 --app-version "0.2.1" `
+                 --app-version "${{ steps.get_version.outputs.version }}" `
                  --input package-in `
                  --main-jar notething-0.2.1.jar `
                  --main-class org.Launcher `
                  --type app-image `
                  --dest dist `
                  --icon notething/src/main/resources/org/images/icon.ico
-        Compress-Archive -Path dist/NoTeThing -DestinationPath ./NoTeThing_v0.2.1_Windows.zip
+        Compress-Archive -Path dist/NoTeThing -DestinationPath ./NoTeThing-v${{ steps.get_version.outputs.version }}-Windows-Portable.zip
       shell: pwsh
 
     - name: Package Linux (Portable ZIP)
@@ -57,17 +64,18 @@ jobs:
         sudo apt-get install -y binutils
         jpackage --name "NoTeThing" \
                  --vendor "hiepDeveloper" \
-                 --app-version "0.2.1" \
+                 --app-version "${{ steps.get_version.outputs.version }}" \
                  --input package-in \
                  --main-jar notething-0.2.1.jar \
                  --main-class org.Launcher \
                  --type app-image \
                  --dest dist \
                  --icon notething/src/main/resources/org/images/icon.png
-        zip -r NoTeThing_v0.2.1_Linux.zip dist/NoTeThing
+        zip -r NoTeThing-v${{ steps.get_version.outputs.version }}-Linux-Portable.zip dist/NoTeThing
 
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: NoTeThing-${{ matrix.os }}
-        path: "*.zip"
+        name: NoTeThing-v${{ steps.get_version.outputs.version }}-${{ matrix.os == 'windows-latest' && 'Windows' || 'Linux' }}
+        path: NoTeThing-v${{ steps.get_version.outputs.version }}-*-Portable.zip
+        if-no-files-found: error
