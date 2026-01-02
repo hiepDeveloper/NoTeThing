@@ -3,16 +3,16 @@
 [![Tiếng Việt](https://img.shields.io/badge/Ngôn_Ngữ-Tiếng_Việt-green?style=logo&logo=google-translate&logoColor=white)](#)
 [![English](https://img.shields.io/badge/Language-English-blue?style=logo&logo=google-translate&logoColor=white)](./README.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=logo&logo=opensourceinitiative&logoColor=white)](./LICENSE)
-[![Phiên bản](https://img.shields.io/badge/Phiên_bản-0.2.0-orange?style=logo&logo=github&logoColor=white)](./CHANGELOG_VN.md)
+[![Phiên bản](https://img.shields.io/badge/Phiên_bản-0.2.1-orange?style=logo&logo=github&logoColor=white)](./CHANGELOG_VN.md)
 [![Java](https://img.shields.io/badge/Java-21+-red?style=logo&logo=openjdk&logoColor=white)](https://openjdk.org/)
 
-Ứng dụng ghi chú nhẹ, hiện đại được xây dựng bằng JavaFX và AtlantaFX.
+Ứng dụng ghi chú nhẹ, hiện đại và đa nền tảng được xây dựng bằng JavaFX và AtlantaFX.
 
 ## Tính năng
 - 🌙 **Chế độ tối (Dark Mode)**: Chuyển đổi giữa giao diện Sáng và Tối với cài đặt được lưu trữ bền vững.
 - ✨ **Giao diện hiện đại**: Sử dụng AtlantaFX để mang lại vẻ ngoài bóng bẩy và chuyên nghiệp.
 - 📌 **Luôn hiển thị trên cùng**: Giữ cho các ghi chú của bạn luôn hiển thị trên các cửa sổ khác.
-- 🍷 **Độ trong suốt & Kính mờ**: Tùy chỉnh độ mờ của từng ghi chú với hiệu ứng "kính mờ" (Acrylic) nguyên bản của Windows.
+- 🍷 **Độ trong suốt & Kính mờ**: Tùy chỉnh độ mờ của từng ghi chú với hiệu ứng "kính mờ" (Acrylic) nguyên bản (Hỗ trợ tốt Windows & Linux).
 - ✍️ **Font chữ viết tay**: Hỗ trợ các font chữ viết tay (như Fuzzy Bubbles, Patrick Hand) hỗ trợ tiếng Việt hoàn hảo.
 - 🎨 **Chủ đề thích ứng**: 7 bộ màu sắc được tuyển chọn với thanh tiêu đề và nền cửa sổ thích ứng linh hoạt.
 - 💾 **Tự động lưu**: Không bao giờ mất ý tưởng của bạn; nội dung được lưu tự động.
@@ -22,8 +22,10 @@
 ## 🚀 Chạy nhanh (Bản Portable)
 Để trải nghiệm nhanh mà không cần cài đặt Java, bạn có thể sử dụng bản Portable:
 1. Truy cập trang [Releases](https://github.com/hiepDeveloper/NoTeThing/releases).
-2. Tải về bản Portable (file .zip) mới nhất.
-3. Giải nén và chạy file **`NoTeThing.exe`**.
+2. Tải về bản Portable (file .zip) tương ứng với hệ điều hành của bạn (**Windows** hoặc **Linux**).
+3. Giải nén và chạy trình khởi chạy:
+   - **Windows**: Chạy file **`NoTeThing.exe`**.
+   - **Linux**: Chạy file thực thi **`NoTeThing`** trong thư mục.
 
 
 ## Yêu cầu hệ thống
