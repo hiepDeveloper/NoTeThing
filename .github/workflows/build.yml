@@ -46,7 +46,6 @@ jobs:
                  --main-class org.Launcher `
                  --type app-image `
                  --dest dist `
-                 --win-console `
                  --icon notething/src/main/resources/org/images/icon.ico
         Compress-Archive -Path dist/NoTeThing -DestinationPath ./NoTeThing_v0.2.1_Windows.zip
       shell: pwsh
