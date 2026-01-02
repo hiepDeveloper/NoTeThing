@@ -25,6 +25,10 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
+    - name: Build Fat JAR with Maven
+      run: mvn clean package
+      working-directory: notething
+
     - name: Prepare Package Folder
       run: |
         mkdir -p package-in
