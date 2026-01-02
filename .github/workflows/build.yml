@@ -42,7 +42,7 @@ jobs:
         cp notething/target/notething-0.2.1.jar package-in/
       shell: bash
 
-    - name: Package Windows (Portable ZIP)
+    - name: Package Windows (App Folder)
       if: matrix.os == 'windows-latest'
       run: |
         jpackage --name "NoTeThing" `
@@ -54,10 +54,9 @@ jobs:
                  --type app-image `
                  --dest dist `
                  --icon notething/src/main/resources/org/images/icon.ico
-        Compress-Archive -Path dist/NoTeThing -DestinationPath ./NoTeThing-v${{ steps.get_version.outputs.version }}-Windows-Portable.zip
       shell: pwsh
 
-    - name: Package Linux (Portable ZIP)
+    - name: Package Linux (App Folder)
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update
@@ -71,11 +70,12 @@ jobs:
                  --type app-image \
                  --dest dist \
                  --icon notething/src/main/resources/org/images/icon.png
-        zip -r NoTeThing-v${{ steps.get_version.outputs.version }}-Linux-Portable.zip dist/NoTeThing
 
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: NoTeThing-v${{ steps.get_version.outputs.version }}-${{ matrix.os == 'windows-latest' && 'Windows' || 'Linux' }}
-        path: NoTeThing-v${{ steps.get_version.outputs.version }}-*-Portable.zip
+        # Tên artifact này sẽ chính là tên file .zip bạn tải về
+        name: NoTeThing-v${{ steps.get_version.outputs.version }}-${{ matrix.os == 'windows-latest' && 'Windows' || 'Linux' }}-Portable
+        # Khi đưa đường dẫn thư mục vào đây, GitHub sẽ tự nén các file bên trong lại
+        path: dist/NoTeThing/
         if-no-files-found: error
