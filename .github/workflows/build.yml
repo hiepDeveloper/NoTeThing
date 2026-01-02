@@ -25,9 +25,11 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
-    - name: Build Fat JAR with Maven
-      run: mvn clean package
-      working-directory: notething
+    - name: Prepare Package Folder
+      run: |
+        mkdir -p package-in
+        cp notething/target/notething-0.2.1.jar package-in/
+      shell: bash
 
     - name: Package Windows (Portable ZIP)
       if: matrix.os == 'windows-latest'
@@ -35,34 +37,32 @@ jobs:
         jpackage --name "NoTeThing" `
                  --vendor "hiepDeveloper" `
                  --app-version "0.2.1" `
-                 --input target `
+                 --input package-in `
                  --main-jar notething-0.2.1.jar `
                  --main-class org.Launcher `
                  --type app-image `
                  --dest dist `
-                 --icon src/main/resources/org/images/icon.ico
+                 --win-console `
+                 --icon notething/src/main/resources/org/images/icon.ico
         Compress-Archive -Path dist/NoTeThing -DestinationPath ../NoTeThing_v0.2.1_Windows.zip
-      working-directory: notething
       shell: pwsh
 
     - name: Package Linux (Portable ZIP)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        # Cài đặt các thư mục cần thiết cho jpackage trên linux nếu cần
         sudo apt-get update
         sudo apt-get install -y binutils
         jpackage --name "NoTeThing" \
                  --vendor "hiepDeveloper" \
                  --app-version "0.2.1" \
-                 --input target \
+                 --input package-in \
                  --main-jar notething-0.2.1.jar \
                  --main-class org.Launcher \
                  --type app-image \
                  --dest dist \
-                 --icon src/main/resources/org/images/icon.png
+                 --icon notething/src/main/resources/org/images/icon.png
         cd dist
         zip -r ../../NoTeThing_v0.2.1_Linux.zip NoTeThing
-      working-directory: notething
 
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
