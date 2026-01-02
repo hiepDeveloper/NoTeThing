@@ -1,8 +1,3 @@
-/*
- * Copyright (c) 2025 hiepDeveloper
- * Licensed under the MIT License.
- * Xem chi tiết tại file LICENSE ở thư mục gốc.
- */
 package org;
 
 import javafx.fxml.FXML;
@@ -13,7 +8,10 @@ import javafx.fxml.FXML;
 public class PrimaryController {
 
     @FXML
-    private javafx.scene.layout.VBox rootPane;
+    private javafx.scene.layout.StackPane rootPane;
+
+    @FXML
+    private javafx.scene.layout.VBox contentBox;
 
     @FXML
     private javafx.scene.layout.HBox headerBox;
@@ -33,7 +31,7 @@ public class PrimaryController {
     private double xOffset = 0;
     private double yOffset = 0;
     
-    private static final int RESIZE_MARGIN = 10;
+    private static final int RESIZE_MARGIN = 14;
     
     private Note note;
     private int savedCaretPosition = 0;
@@ -85,35 +83,25 @@ public class PrimaryController {
         
         if (noteTitle != null) {
             noteTitle.textProperty().bindBidirectional(note.titleProperty());
-            // Lưu dữ liệu khi kết thúc chỉnh sửa tiêu đề
             noteTitle.focusedProperty().addListener((obs, oldVal, newVal) -> {
                 if (!newVal) NoteManager.getInstance().saveNotes();
             });
         }
         noteContent.textProperty().bindBidirectional(note.contentProperty());
         
-        // Cập nhật UI cho nút Always on Top
         updateAlwaysOnTopUI(note.isAlwaysOnTop());
-        
-        // Lắng nghe thay đổi trạng thái Always on Top
         note.alwaysOnTopProperty().addListener((obs, oldVal, newVal) -> {
             updateAlwaysOnTopUI(newVal);
             NoteManager.getInstance().saveNotes();
         });
         
-        // Áp dụng màu sắc hiện tại
         applyColor(note.getColor());
-        
-        // Lắng nghe thay đổi màu sắc
         note.colorProperty().addListener((obs, oldVal, newVal) -> {
             applyColor(newVal);
             NoteManager.getInstance().saveNotes();
         });
         
-        // Áp dụng độ trong suốt hiện tại
         applyOpacity(note.getOpacity());
-        
-        // Lắng nghe thay đổi độ trong suốt
         note.opacityProperty().addListener((obs, oldVal, newVal) -> {
             applyOpacity(newVal.doubleValue());
             NoteManager.getInstance().saveNotes();
@@ -126,14 +114,10 @@ public class PrimaryController {
     public void focusContent() {
         if (noteContent != null) {
             noteContent.requestFocus();
-            // Đặt con trỏ ở cuối văn bản
             noteContent.positionCaret(noteContent.getText().length());
         }
     }
 
-    /**
-     * Hiển thị danh sách ghi chú.
-     */
     @FXML
     private void openNoteList() {
         try {
@@ -150,18 +134,12 @@ public class PrimaryController {
         }
     }
 
-    /**
-     * Thu nhỏ cửa sổ ghi chú.
-     */
     @FXML
     private void minimizeNote() {
         javafx.stage.Stage stage = (javafx.stage.Stage) headerBox.getScene().getWindow();
         stage.setIconified(true);
     }
 
-    /**
-     * Đóng và lưu trạng thái ghi chú.
-     */
     @FXML
     private void closeNote() {
         javafx.stage.Stage stage = (javafx.stage.Stage) headerBox.getScene().getWindow();
@@ -182,9 +160,6 @@ public class PrimaryController {
         stage.setY(event.getScreenY() - yOffset);
     }
     
-    /**
-     * Bật/tắt chế độ Always on Top.
-     */
     @FXML
     private void toggleAlwaysOnTop() {
         if (note != null) {
@@ -192,9 +167,6 @@ public class PrimaryController {
         }
     }
     
-    /**
-     * Cập nhật giao diện nút Always on Top.
-     */
     private void updateAlwaysOnTopUI(boolean isAlwaysOnTop) {
         if (alwaysOnTopIcon != null) {
             if (isAlwaysOnTop) {
@@ -211,25 +183,15 @@ public class PrimaryController {
         }
     }
     
-    /**
-     * Ẩn/hiện header khi focus thay đổi.
-     */
     private void toggleHeaderVisibility(boolean isFocused) {
         if (headerBox != null) {
             if (isFocused) {
-                // Hiện header khi được focus
                 headerBox.setVisible(true);
                 headerBox.setManaged(true);
-                
-                // Tự động focus vào noteContent và khôi phục vị trí con trỏ
                 javafx.application.Platform.runLater(() -> {
                     if (noteContent != null) {
                         noteContent.requestFocus();
-                        // Khôi phục vị trí con trỏ đã lưu
                         noteContent.positionCaret(savedCaretPosition);
-                        
-                        // Workaround: Insert và xóa ký tự để kích hoạt con trỏ nhấp nháy
-                        // Đặc biệt quan trọng khi TextArea trống
                         if (noteContent.getText().isEmpty()) {
                             noteContent.insertText(0, " ");
                             noteContent.deleteText(0, 1);
@@ -238,21 +200,15 @@ public class PrimaryController {
                     }
                 });
             } else {
-                // Lưu vị trí con trỏ hiện tại trước khi ẩn header
                 if (noteContent != null) {
                     savedCaretPosition = noteContent.getCaretPosition();
                 }
-                
-                // Ẩn header khi mất focus
                 headerBox.setVisible(false);
                 headerBox.setManaged(false);
             }
         }
     }
     
-    /**
-     * Hiển thị bảng chọn màu.
-     */
     @FXML
     private void showColorPicker() {
         javafx.scene.layout.VBox pickerRoot = new javafx.scene.layout.VBox(15);
@@ -260,11 +216,9 @@ public class PrimaryController {
         pickerRoot.setPadding(new javafx.geometry.Insets(15));
         pickerRoot.setPrefWidth(220);
         
-        // 1. Tiêu đề
         javafx.scene.control.Label titleLabel = new javafx.scene.control.Label("Màu sắc & Độ trong");
         titleLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: -note-text-color;");
         
-        // 2. Palette màu
         javafx.scene.layout.HBox colorPalette = new javafx.scene.layout.HBox(8);
         colorPalette.setAlignment(javafx.geometry.Pos.CENTER);
         
@@ -281,23 +235,22 @@ public class PrimaryController {
             colorPalette.getChildren().add(circle);
         }
         
-        // 3. Slider độ trong suốt
         javafx.scene.layout.VBox opacityBox = new javafx.scene.layout.VBox(5);
         javafx.scene.control.Label opacityLabel = new javafx.scene.control.Label("Độ trong suốt");
         opacityLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: -note-prompt-color;");
         
-        javafx.scene.control.Slider opacitySlider = new javafx.scene.control.Slider(0.3, 1.0, note != null ? note.getOpacity() : 1.0);
+        javafx.scene.control.Slider opacitySlider = new javafx.scene.control.Slider(0.1, 1.0, note != null ? note.getOpacity() : 1.0);
         opacitySlider.setBlockIncrement(0.1);
         opacitySlider.valueProperty().addListener((obs, old, newVal) -> {
             if (note != null) {
                 note.setOpacity(newVal.doubleValue());
             }
         });
+        
         opacityBox.getChildren().addAll(opacityLabel, opacitySlider);
         
         pickerRoot.getChildren().addAll(titleLabel, colorPalette, opacityBox);
         
-        // Áp dụng stylesheet và theme cho popup
         pickerRoot.getStylesheets().add(App.class.getResource("css/styles.css").toExternalForm());
         if (App.isDarkMode()) {
             pickerRoot.getStyleClass().add("dark");
@@ -315,50 +268,15 @@ public class PrimaryController {
     private void applyColor(String colorClass) {
         rootPane.getStyleClass().removeIf(s -> s.startsWith("color-"));
         rootPane.getStyleClass().add(colorClass);
-        // Cập nhật lại độ trong sau khi đổi màu
         if (note != null) applyOpacity(note.getOpacity());
     }
     
     private void applyOpacity(double opacity) {
-        // Áp dụng độ trong suốt cho nền nhưng giữ nội dung rõ ràng
-        // Chúng ta cập nhật biến CSS cục bộ để background-color sử dụng
-        rootPane.setStyle("-fx-background-color: derive(-note-bg-base, 0%); -fx-opacity: 1.0;"); 
-        // Thực tế, chúng ta sẽ điều chỉnh -fx-background-color của rootPane dựa trên màu hiện tại
-        String colorVar = "-note-yellow";
-        String colorHeaderVar = "-note-yellow-header";
-        
-        if (note != null) {
-            switch (note.getColor()) {
-                case "color-green": colorVar = "-note-green"; colorHeaderVar = "-note-green-header"; break;
-                case "color-blue": colorVar = "-note-blue"; colorHeaderVar = "-note-blue-header"; break;
-                case "color-orange": colorVar = "-note-orange"; colorHeaderVar = "-note-orange-header"; break;
-                case "color-red": colorVar = "-note-red"; colorHeaderVar = "-note-red-header"; break;
-                case "color-purple": colorVar = "-note-purple"; colorHeaderVar = "-note-purple-header"; break;
-                case "color-gray": colorVar = "-note-gray"; colorHeaderVar = "-note-gray-header"; break;
-            }
-        }
-
-        // Tạo chuỗi style để ghi đè màu nền với độ alpha
-        // Lưu ý: JavaFX hỗ trợ định dạng ladder hoặc hsb/rgba trong setStyle
-        // Ở đây ta dùng hàm ladder hoặc set trực tiếp qua một biến phụ trong CSS nếu có thể
-        // Nhưng cách nhanh nhất là dùng -fx-background-color: derive(..., ...) kết hợp một trick
-        
-        // Trick: Sử dụng color-mix hoặc rgba trực tiếp nếu biết mã màu. 
-        // Vì ta dùng biến CSS, ta sẽ ép kiểu rootPane có độ mờ nhưng các con thì không
-        // Tuy nhiên, logic chuẩn nhất là Stage TRANSPARENT + RootPane background rgba.
-        
-        // Cập nhật: Tôi sẽ dùng CSS variable để quản lý opacity cho đồng bộ
-        rootPane.setStyle("-fx-background-color: " + colorVar + "; -fx-opacity: " + opacity + ";");
-        // Đợi đã, người dùng muốn nội dung RÕ RÀNG. setOpacity() sẽ làm mờ cả chữ.
-        // Tôi phải dùng kỹ thuật khác.
-        
-        // Kỹ thuật đúng: `-fx-background-color: rgba(<r>,<g>,<b>, <a>)`
-        // Tôi sẽ lấy mã màu hex từ CSS và chuyển sang RGBA
         String hex = getHexForColor(note != null ? note.getColor() : "color-yellow");
         String headerHex = getHexForHeader(note != null ? note.getColor() : "color-yellow");
         
-        rootPane.setStyle("-fx-background-color: " + toRgba(hex, opacity) + "; -fx-background-radius: 12px;");
-        headerBox.setStyle("-fx-background-color: " + toRgba(headerHex, opacity) + "; -fx-background-radius: 12px 12px 0 0;");
+        rootPane.setStyle("-fx-background-color: " + toRgba(hex, opacity) + "; -fx-background-radius: 7px;");
+        headerBox.setStyle("-fx-background-color: " + toRgba(headerHex, opacity) + "; -fx-background-radius: 7px 7px 0 0;");
     }
 
     private String toRgba(String hex, double opacity) {
@@ -391,6 +309,12 @@ public class PrimaryController {
             case "color-purple": return dark ? "#32264D" : "#D6BCFA";
             case "color-gray":   return dark ? "#204040" : "#A5E8E8";
             default:             return dark ? "#453F1F" : "#FFED99";
+        }
+    }
+
+    public void refreshTheme() {
+        if (note != null) {
+            applyOpacity(note.getOpacity());
         }
     }
 }

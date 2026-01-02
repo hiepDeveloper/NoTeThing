@@ -22,10 +22,13 @@ public class Note {
     private final javafx.beans.property.BooleanProperty alwaysOnTop;
     private final StringProperty color;
     private final javafx.beans.property.DoubleProperty opacity;
+
     
     private Stage stage;
     private String id;
     
+    private PrimaryController controller;
+
     public Note(Stage stage, String id) {
         this.stage = stage;
         this.id = id;
@@ -94,9 +97,14 @@ public class Note {
     public void setOpacity(double value) { opacity.set(value); }
     public javafx.beans.property.DoubleProperty opacityProperty() { return opacity; }
     
+
+    
     public Stage getStage() { return stage; }
     public void setStage(Stage stage) { this.stage = stage; }
     
+    public PrimaryController getController() { return controller; }
+    public void setController(PrimaryController controller) { this.controller = controller; }
+
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 }

@@ -2,9 +2,11 @@
 target/
 *.class
 
-# Distribution
+# Distribution and Packages
 notething/dist/
 notething/target/
+notething/scripts/
+*.zip
 
 # IDE
 .idea/

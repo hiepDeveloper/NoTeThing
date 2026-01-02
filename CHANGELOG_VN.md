@@ -8,6 +8,17 @@ Tất cả các thay đổi đáng chú ý của dự án này sẽ được ghi
 Định dạng dựa trên [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 và dự án này tuân thủ [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-01-01
+
+### Đã sửa lỗi
+- **Đồng bộ hóa Chủ đề**: Khắc phục lỗi thay đổi theme từ Danh sách ghi chú không áp dụng ngay cho các ghi chú hiện có (trước đây yêu cầu phải chỉnh độ trong suốt mới cập nhật).
+- **Tinh chỉnh Hiệu ứng Kính mờ**: Cải thiện độ ổn định của Blur và sửa logic bo tròn vùng cắt để đồng bộ hoàn hảo với giao diện.
+- **Tương thích Linux**: Tối ưu hóa hiệu năng Blur và khả năng tương tác cửa sổ trên các hệ điều hành Linux.
+- **UI & Tương tác**:
+    - Tinh chỉnh bán kính bo góc ghi chú về 7px giúp giao diện thanh thoát hơn.
+    - Điều chỉnh chiều ngang tối thiểu về 220px để linh hoạt hơn trong việc sắp xếp không gian màn hình.
+    - Cải thiện độ nhạy của vùng bắt sự kiện resize và tính ổn định khi xử lý sự kiện native.
+
 ## [0.2.0] - 2025-12-31
 
 ### Đã thêm

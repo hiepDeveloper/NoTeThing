@@ -108,7 +108,7 @@ public class App extends Application {
             String noteId = (data != null) ? data.getId() : "Note-" + java.util.UUID.randomUUID().toString();
             stage.setTitle(noteId);
             
-            stage.setMinWidth(200);
+            stage.setMinWidth(220);
             stage.setMinHeight(150);
             
             // Khôi phục kích thước và vị trí
@@ -117,6 +117,10 @@ public class App extends Application {
                 stage.setY(data.getY());
                 stage.setWidth(data.getWidth());
                 stage.setHeight(data.getHeight());
+            } else {
+                // Kích thước mặc định hình vuông cho ghi chú mới
+                stage.setWidth(300);
+                stage.setHeight(300);
             }
             
             FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("fxml/primary.fxml"));
@@ -131,12 +135,15 @@ public class App extends Application {
                 scene.getRoot().getStyleClass().add("dark");
             }
             
-            // Áp dụng tọa độ nếu có dữ liệu
+            // Áp dụng lại tọa độ nếu có dữ liệu (để chắc chắn sau khi setScene)
             if (data != null) {
                 stage.setX(data.getX());
                 stage.setY(data.getY());
                 stage.setWidth(data.getWidth());
                 stage.setHeight(data.getHeight());
+            } else {
+                 stage.setWidth(300);
+                 stage.setHeight(300);
             }
             
             ResizeHelper.addResizeListener(stage);
@@ -153,6 +160,21 @@ public class App extends Application {
                 note.setTitle(NoteManager.getInstance().getNextDefaultTitle());
             }
             
+            // Kích hoạt nhận diện HWND và Blur
+            // Đặt tiêu đề cửa sổ là ID duy nhất để JNA luôn tìm thấy đúng cửa sổ
+            stage.setTitle(noteId);
+            
+            stage.showingProperty().addListener((obs, old, isShowing) -> {
+                if (isShowing) {
+                    // Luôn đảm bảo tiêu đề là ID khi hiển thị (phòng trường hợp bị thay đổi)
+                    stage.setTitle(noteId);
+                    
+                    javafx.application.Platform.runLater(() -> {
+                        GlassHelper.enableBlur(stage);
+                    });
+                }
+            });
+            
             // Thêm vào quản lý nếu chưa tồn tại
             if (NoteManager.getInstance().findNoteById(noteId) == null) {
                 NoteManager.getInstance().addNote(note);
@@ -161,20 +183,16 @@ public class App extends Application {
             // Cấu hình Controller
             PrimaryController controller = fxmlLoader.getController();
             controller.setNote(note);
-            
+            note.setController(controller);
+
             // Hiển thị nếu là ghi chú mới hoặc đang mở
             if (data == null || data.isOpen()) {
                 stage.show();
-                // Chỉ bind tiêu đề và focus SAU KHI show
                 javafx.application.Platform.runLater(() -> {
-                    note.bindTitleToStage();
                     controller.focusContent();
-                    // Áp dụng Acrylic/Blur hiệu ứng hệ thống
-                    GlassHelper.applyBlur(stage);
                 });
             } else {
-                // Nếu note cũ đang đóng, vẫn bind để đồng bộ data
-                note.bindTitleToStage();
+                 // Không làm gì thêm, tiêu đề cửa sổ đã được đặt là ID
             }
             
         } catch (IOException e) {
@@ -224,6 +242,9 @@ public class App extends Application {
         for (Note note : NoteManager.getInstance().getNotes()) {
             if (note.getStage() != null && note.getStage().getScene() != null) {
                 updateRootTheme(note.getStage().getScene().getRoot());
+                if (note.getController() != null) {
+                    note.getController().refreshTheme();
+                }
             }
         }
     }

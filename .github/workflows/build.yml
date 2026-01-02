@@ -1,0 +1,159 @@
+name: Build and Package NoTeThing
+
+on:
+  push:
+    branches: [ main, fix ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main, fix ]
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Build Fat JAR with Maven
+      run: mvn -B clean package -DskipTests --no-transfer-progress
+      working-directory: notething
+
+    - name: Get Version
+      id: get_version
+      run: |
+        VERSION=$(mvn -f notething/pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout)
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+      shell: bash
+
+    - name: Prepare Package Folder
+      run: |
+        mkdir -p package-in
+        cp notething/target/notething-*.jar package-in/
+        echo "jar_name=$(basename notething/target/notething-*.jar)" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Package Windows (App Folder)
+      if: matrix.os == 'windows-latest'
+      run: |
+        jpackage --name "NoTeThing" `
+                 --vendor "hiepDeveloper" `
+                 --app-version "${{ steps.get_version.outputs.version }}" `
+                 --input package-in `
+                 --main-jar ${{ env.jar_name }} `
+                 --main-class org.Launcher `
+                 --type app-image `
+                 --dest dist `
+                 --icon notething/src/main/resources/org/images/icon.ico
+      shell: pwsh
+
+    - name: Package Linux (App Folder)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y binutils fakeroot
+        jpackage --name "NoTeThing" \
+                 --vendor "hiepDeveloper" \
+                 --app-version "${{ steps.get_version.outputs.version }}" \
+                 --input package-in \
+                 --main-jar ${{ env.jar_name }} \
+                 --main-class org.Launcher \
+                 --type app-image \
+                 --dest dist \
+                 --icon notething/src/main/resources/org/images/icon.png
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: NoTeThing-v${{ steps.get_version.outputs.version }}-${{ matrix.os == 'windows-latest' && 'Windows' || 'Linux' }}-Portable
+        path: dist/NoTeThing/
+        if-no-files-found: error
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare Release Assets
+        run: |
+          mkdir release-assets
+          for dir in artifacts/*/; do
+            asset_name=$(basename "$dir").zip
+            cd "$dir"
+            zip -r "../../release-assets/$asset_name" .
+            cd ../..
+          done
+
+      - name: Validate Release Version
+        id: check_version
+        run: |
+          # Đọc phiên bản từ dòng <version> ngay sau <artifactId>notething</artifactId>
+          POM_VERSION=$(grep -A 1 "<artifactId>notething</artifactId>" notething/pom.xml | grep "<version>" | sed -E 's/.*<version>(.*)<\/version>.*/\1/')
+          TAG_VERSION=${GITHUB_REF#refs/tags/v}
+          
+          echo "Phiên bản trong pom.xml: $POM_VERSION"
+          echo "Phiên bản từ Tag: $TAG_VERSION"
+          
+          if [ "$POM_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::Lỗi: Phiên bản trong pom.xml ($POM_VERSION) không khớp với Tag ($TAG_VERSION)!"
+            exit 1
+          fi
+
+          if ! grep -q "## \[$TAG_VERSION\]" CHANGELOG.md; then
+            echo "::error::Lỗi: Không tìm thấy mục ## [$TAG_VERSION] trong CHANGELOG.md!"
+            exit 1
+          fi
+
+          if [[ $TAG_VERSION == 0.* ]]; then
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+
+      - name: Extract Release Notes
+        id: extract_notes
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          sed -n "/## \[$VERSION\]/,/## \[/p" CHANGELOG.md | sed '1d;$d' > release_notes.md
+          
+          if [ ! -s release_notes.md ]; then
+            echo "::error::Lỗi: Nội dung Changelog cho phiên bản $VERSION đang bị trống!"
+            exit 1
+          fi
+          
+          echo "Nội dung trích xuất thành công."
+        shell: bash
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: release_notes.md
+          files: release-assets/*.zip
+          generate_release_notes: false
+          draft: false
+          prerelease: ${{ steps.check_version.outputs.is_prerelease }}
