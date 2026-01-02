@@ -13,6 +13,7 @@ jobs:
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest]
 
@@ -28,7 +29,7 @@ jobs:
         cache: maven
 
     - name: Build Fat JAR with Maven
-      run: mvn clean package
+      run: mvn -B clean package -DskipTests --no-transfer-progress
       working-directory: notething
 
     - name: Get Version
@@ -63,7 +64,7 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update
-        sudo apt-get install -y binutils
+        sudo apt-get install -y binutils fakeroot
         jpackage --name "NoTeThing" \
                  --vendor "hiepDeveloper" \
                  --app-version "${{ steps.get_version.outputs.version }}" \
