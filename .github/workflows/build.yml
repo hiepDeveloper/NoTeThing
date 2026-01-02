@@ -39,7 +39,10 @@ jobs:
     - name: Prepare Package Folder
       run: |
         mkdir -p package-in
-        cp notething/target/notething-0.2.1.jar package-in/
+        # Tự động tìm file jar trong target bất kể phiên bản nào
+        cp notething/target/notething-*.jar package-in/
+        # Lưu tên file jar thực tế để jpackage sử dụng chính xác
+        echo "jar_name=$(basename notething/target/notething-*.jar)" >> $GITHUB_ENV
       shell: bash
 
     - name: Package Windows (App Folder)
@@ -49,7 +52,7 @@ jobs:
                  --vendor "hiepDeveloper" `
                  --app-version "${{ steps.get_version.outputs.version }}" `
                  --input package-in `
-                 --main-jar notething-0.2.1.jar `
+                 --main-jar ${{ env.jar_name }} `
                  --main-class org.Launcher `
                  --type app-image `
                  --dest dist `
@@ -65,7 +68,7 @@ jobs:
                  --vendor "hiepDeveloper" \
                  --app-version "${{ steps.get_version.outputs.version }}" \
                  --input package-in \
-                 --main-jar notething-0.2.1.jar \
+                 --main-jar ${{ env.jar_name }} \
                  --main-class org.Launcher \
                  --type app-image \
                  --dest dist \
