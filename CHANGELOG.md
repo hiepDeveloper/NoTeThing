@@ -8,6 +8,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-01-01
+
+### Fixed
+- **Theme Synchronization**: Resolved an issue where theme changes from the Note List weren't applied to note windows until opacity was manually adjusted.
+- **Glass Effect Refinement**: Improved blur stability and corrected corner rounding logic for better visual consistency.
+- **Linux Compatibility**: Enhanced background blur and window interaction performance on Linux systems.
+- **UI & Interaction**:
+    - Optimized note window corner radius to 7px for a sleeker profile.
+    - Adjusted minimum window width to 220px for better flexibility.
+    - Improved resize grabbing sensitivity and native event handling stability.
+
 ## [0.2.0] - 2025-12-31
 
 ### Added

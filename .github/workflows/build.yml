@@ -1,0 +1,71 @@
+name: Build and Package NoTeThing
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Build Fat JAR with Maven
+      run: mvn clean package
+      working-directory: notething
+
+    - name: Package Windows (Portable ZIP)
+      if: matrix.os == 'windows-latest'
+      run: |
+        jpackage --name "NoTeThing" `
+                 --vendor "hiepDeveloper" `
+                 --app-version "0.2.1" `
+                 --input target `
+                 --main-jar notething-0.2.1.jar `
+                 --main-class org.Launcher `
+                 --type app-image `
+                 --dest dist `
+                 --icon src/main/resources/org/images/icon.ico
+        Compress-Archive -Path dist/NoTeThing -DestinationPath ../NoTeThing_v0.2.1_Windows.zip
+      working-directory: notething
+      shell: pwsh
+
+    - name: Package Linux (Portable ZIP)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        # Cài đặt các thư mục cần thiết cho jpackage trên linux nếu cần
+        sudo apt-get update
+        sudo apt-get install -y binutils
+        jpackage --name "NoTeThing" \
+                 --vendor "hiepDeveloper" \
+                 --app-version "0.2.1" \
+                 --input target \
+                 --main-jar notething-0.2.1.jar \
+                 --main-class org.Launcher \
+                 --type app-image \
+                 --dest dist \
+                 --icon src/main/resources/org/images/icon.png
+        cd dist
+        zip -r ../../NoTeThing_v0.2.1_Linux.zip NoTeThing
+      working-directory: notething
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: NoTeThing-${{ matrix.os }}
+        path: "*.zip"

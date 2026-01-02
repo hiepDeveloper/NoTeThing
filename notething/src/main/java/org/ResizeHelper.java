@@ -18,7 +18,7 @@ import javafx.stage.Stage;
  * Hỗ trợ thay đổi kích thước cửa sổ đa nền tảng.
  */
 public class ResizeHelper {
-    private static final int RESIZE_MARGIN = 10;
+    private static final int RESIZE_MARGIN = 8;
     private static final boolean IS_WINDOWS = System.getProperty("os.name").toLowerCase().contains("win");
     private static final boolean IS_LINUX = System.getProperty("os.name").toLowerCase().contains("nux") || System.getProperty("os.name").toLowerCase().contains("nix");
 
@@ -136,7 +136,7 @@ public class ResizeHelper {
             if (resizeDirection != 0) {
                 WinDef.HWND windowHandle = getHwnd();
                 if (windowHandle != null) {
-                    int sizeCommand = SC_SIZE;
+                    int sizeCommand = 0;
                     switch (resizeDirection) {
                         case HTLEFT: sizeCommand = SC_SIZELEFT; break;
                         case HTRIGHT: sizeCommand = SC_SIZERIGHT; break;
@@ -147,9 +147,12 @@ public class ResizeHelper {
                         case HTBOTTOMLEFT: sizeCommand = SC_SIZEBOTTOMLEFT; break;
                         case HTBOTTOMRIGHT: sizeCommand = SC_SIZEBOTTOMRIGHT; break;
                     }
-                    User32API.INSTANCE.ReleaseCapture();
-                    User32API.INSTANCE.PostMessage(windowHandle, WM_SYSCOMMAND, new WinDef.WPARAM(sizeCommand), new WinDef.LPARAM(0));
-                    event.consume();
+                    
+                    if (sizeCommand != 0) {
+                        User32API.INSTANCE.ReleaseCapture();
+                        User32API.INSTANCE.PostMessage(windowHandle, WM_SYSCOMMAND, new WinDef.WPARAM(sizeCommand), new WinDef.LPARAM(0));
+                        event.consume();
+                    }
                 }
             }
         }
@@ -372,22 +375,22 @@ public class ResizeHelper {
             double minHeight = stage.getMinHeight();
             if (isEast) {
                 double newWidth = startWidth + deltaX;
-                if (newWidth >= minWidth) stage.setWidth(newWidth);
+                if (newWidth >= minWidth) stage.setWidth(Math.round(newWidth));
             } else if (isWest) {
                 double newWidth = startWidth - deltaX;
                 if (newWidth >= minWidth) {
-                    stage.setX(startStageX + deltaX);
-                    stage.setWidth(newWidth);
+                    stage.setX(Math.round(startStageX + deltaX));
+                    stage.setWidth(Math.round(newWidth));
                 }
             }
             if (isSouth) {
                 double newHeight = startHeight + deltaY;
-                if (newHeight >= minHeight) stage.setHeight(newHeight);
+                if (newHeight >= minHeight) stage.setHeight(Math.round(newHeight));
             } else if (isNorth) {
                 double newHeight = startHeight - deltaY;
                 if (newHeight >= minHeight) {
-                    stage.setY(startStageY + deltaY);
-                    stage.setHeight(newHeight);
+                    stage.setY(Math.round(startStageY + deltaY));
+                    stage.setHeight(Math.round(newHeight));
                 }
             }
             event.consume();

@@ -31,7 +31,7 @@ public class PrimaryController {
     private double xOffset = 0;
     private double yOffset = 0;
     
-    private static final int RESIZE_MARGIN = 10;
+    private static final int RESIZE_MARGIN = 14;
     
     private Note note;
     private int savedCaretPosition = 0;
@@ -275,8 +275,8 @@ public class PrimaryController {
         String hex = getHexForColor(note != null ? note.getColor() : "color-yellow");
         String headerHex = getHexForHeader(note != null ? note.getColor() : "color-yellow");
         
-        rootPane.setStyle("-fx-background-color: " + toRgba(hex, opacity) + "; -fx-background-radius: 12px;");
-        headerBox.setStyle("-fx-background-color: " + toRgba(headerHex, opacity) + "; -fx-background-radius: 12px 12px 0 0;");
+        rootPane.setStyle("-fx-background-color: " + toRgba(hex, opacity) + "; -fx-background-radius: 7px;");
+        headerBox.setStyle("-fx-background-color: " + toRgba(headerHex, opacity) + "; -fx-background-radius: 7px 7px 0 0;");
     }
 
     private String toRgba(String hex, double opacity) {

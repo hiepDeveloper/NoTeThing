@@ -164,8 +164,8 @@
 /* Color Menu */
 .color-menu {
     -fx-background-color: -note-popup-bg; 
-    -fx-background-radius: 12; 
-    -fx-border-radius: 12; 
+    -fx-background-radius: 10; 
+    -fx-border-radius: 10; 
     -fx-border-color: -note-popup-border; 
     -fx-border-width: 1;
     -fx-padding: 10;

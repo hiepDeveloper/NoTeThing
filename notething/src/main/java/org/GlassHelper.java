@@ -49,6 +49,24 @@ public class GlassHelper {
                     data.SizeOfData = accent.size();
                     
                     User32Wrapper.INSTANCE.SetWindowCompositionAttribute(hwnd, data);
+
+                    try {
+                        IntByReference preference = new IntByReference(2);
+                        Dwmapi.INSTANCE.DwmSetWindowAttribute(hwnd, 33, preference, 4);
+                    } catch (Exception e) {}
+
+                    // Ngăn việc thêm nhiều listener nếu hàm này được gọi nhiều lần
+                    if (stage.getProperties().get("blur_listeners_added") == null) {
+                        javafx.beans.value.ChangeListener<Number> resizeListener = (obs, oldVal, newVal) -> {
+                             updateWindowRegion(hwnd, stage);
+                        };
+                        stage.widthProperty().addListener(resizeListener);
+                        stage.heightProperty().addListener(resizeListener);
+                        stage.getProperties().put("blur_listeners_added", true);
+                    }
+                    
+                    // Cập nhật lần đầu
+                    updateWindowRegion(hwnd, stage);
                 }
             } catch (Exception e) {
                 // Ignore
@@ -56,11 +74,48 @@ public class GlassHelper {
         });
     }
 
+    private static void updateWindowRegion(WinDef.HWND hwnd, Stage stage) {
+        try {
+            double scaleX = stage.getOutputScaleX();
+            double scaleY = stage.getOutputScaleY();
+            
+            double w = stage.getWidth();
+            double h = stage.getHeight();
+
+            if (w <= 0 || h <= 0) return;
+
+            // Tính toán pixel thực
+            int pixelW = (int) Math.ceil(w * scaleX);
+            int pixelH = (int) Math.ceil(h * scaleY);
+            
+            int cornerRadius = (int) (7 * scaleX);
+
+            // Gdi32 CreateRoundRectRgn:
+            // nWidthEllipse và nHeightEllipse là ĐƯỜNG KÍNH của cung bo tròn.
+            int diameter = 2 * cornerRadius;
+            WinDef.HRGN rgn = Gdi32Wrapper.INSTANCE.CreateRoundRectRgn(0, 0, pixelW, pixelH, diameter, diameter);
+            
+            // bRedraw = true để vẽ lại cửa sổ ngay lập tức
+            User32Wrapper.INSTANCE.SetWindowRgn(hwnd, rgn, true);
+        } catch (Exception e) {}
+    }
+
+    private interface Dwmapi extends StdCallLibrary {
+        Dwmapi INSTANCE = Native.load("dwmapi", Dwmapi.class, W32APIOptions.DEFAULT_OPTIONS);
+        int DwmSetWindowAttribute(WinDef.HWND hwnd, int dwAttribute, IntByReference pvAttribute, int cbAttribute);
+    }
+
+    private interface Gdi32Wrapper extends StdCallLibrary {
+        Gdi32Wrapper INSTANCE = Native.load("gdi32", Gdi32Wrapper.class, W32APIOptions.DEFAULT_OPTIONS);
+        WinDef.HRGN CreateRoundRectRgn(int nLeftRect, int nTopRect, int nRightRect, int nBottomRect, int nWidthEllipse, int nHeightEllipse);
+    }
+
     private interface User32Wrapper extends StdCallLibrary {
         User32Wrapper INSTANCE = Native.load("user32", User32Wrapper.class, W32APIOptions.DEFAULT_OPTIONS);
 
         WinDef.HWND FindWindow(String lpClassName, String lpWindowName);
         int SetWindowCompositionAttribute(WinDef.HWND hWnd, WindowCompositionAttributeData data);
+        int SetWindowRgn(WinDef.HWND hWnd, WinDef.HRGN hRgn, boolean bRedraw);
 
         interface WindowCompositionAttribute {
             int WCA_ACCENT_POLICY = 19;
