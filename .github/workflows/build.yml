@@ -108,6 +108,7 @@ jobs:
           done
 
       - name: Validate Release Version
+        id: check_version
         run: |
           POM_VERSION=$(mvn -f notething/pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout)
           TAG_VERSION=${GITHUB_REF#refs/tags/v}
@@ -123,6 +124,14 @@ jobs:
           if ! grep -q "## \[$TAG_VERSION\]" CHANGELOG.md; then
             echo "::error::Lỗi: Không tìm thấy mục ## [$TAG_VERSION] trong CHANGELOG.md!"
             exit 1
+          fi
+
+          if [[ $TAG_VERSION == 0.* ]]; then
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+            echo "Release type: Pre-release"
+          else
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+            echo "Release type: Official"
           fi
         shell: bash
 
@@ -147,4 +156,4 @@ jobs:
           files: release-assets/*.zip
           generate_release_notes: false
           draft: false
-          prerelease: false
+          prerelease: ${{ steps.check_version.outputs.is_prerelease }}
