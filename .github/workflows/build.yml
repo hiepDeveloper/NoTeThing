@@ -111,7 +111,8 @@ jobs:
       - name: Validate Release Version
         id: check_version
         run: |
-          POM_VERSION=$(mvn -f notething/pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout)
+          # Đọc phiên bản từ dòng <version> ngay sau <artifactId>notething</artifactId>
+          POM_VERSION=$(grep -A 1 "<artifactId>notething</artifactId>" notething/pom.xml | grep "<version>" | sed -E 's/.*<version>(.*)<\/version>.*/\1/')
           TAG_VERSION=${GITHUB_REF#refs/tags/v}
           
           echo "Phiên bản trong pom.xml: $POM_VERSION"
@@ -129,10 +130,8 @@ jobs:
 
           if [[ $TAG_VERSION == 0.* ]]; then
             echo "is_prerelease=true" >> $GITHUB_OUTPUT
-            echo "Release type: Pre-release"
           else
             echo "is_prerelease=false" >> $GITHUB_OUTPUT
-            echo "Release type: Official"
           fi
         shell: bash
 
