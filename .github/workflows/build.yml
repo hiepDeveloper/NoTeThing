@@ -48,7 +48,7 @@ jobs:
                  --dest dist `
                  --win-console `
                  --icon notething/src/main/resources/org/images/icon.ico
-        Compress-Archive -Path dist/NoTeThing -DestinationPath ../NoTeThing_v0.2.1_Windows.zip
+        Compress-Archive -Path dist/NoTeThing -DestinationPath ./NoTeThing_v0.2.1_Windows.zip
       shell: pwsh
 
     - name: Package Linux (Portable ZIP)
@@ -65,8 +65,7 @@ jobs:
                  --type app-image \
                  --dest dist \
                  --icon notething/src/main/resources/org/images/icon.png
-        cd dist
-        zip -r ../../NoTeThing_v0.2.1_Linux.zip NoTeThing
+        zip -r NoTeThing_v0.2.1_Linux.zip dist/NoTeThing
 
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
