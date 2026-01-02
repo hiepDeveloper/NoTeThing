@@ -3,6 +3,8 @@ name: Build and Package NoTeThing
 on:
   push:
     branches: [ main, fix ]
+    tags:
+      - 'v*'
   pull_request:
     branches: [ main, fix ]
 
@@ -39,9 +41,7 @@ jobs:
     - name: Prepare Package Folder
       run: |
         mkdir -p package-in
-        # Tự động tìm file jar trong target bất kể phiên bản nào
         cp notething/target/notething-*.jar package-in/
-        # Lưu tên file jar thực tế để jpackage sử dụng chính xác
         echo "jar_name=$(basename notething/target/notething-*.jar)" >> $GITHUB_ENV
       shell: bash
 
@@ -77,8 +77,74 @@ jobs:
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
-        # Tên artifact này sẽ chính là tên file .zip bạn tải về
         name: NoTeThing-v${{ steps.get_version.outputs.version }}-${{ matrix.os == 'windows-latest' && 'Windows' || 'Linux' }}-Portable
-        # Khi đưa đường dẫn thư mục vào đây, GitHub sẽ tự nén các file bên trong lại
         path: dist/NoTeThing/
         if-no-files-found: error
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare Release Assets
+        run: |
+          mkdir release-assets
+          for dir in artifacts/*/; do
+            asset_name=$(basename "$dir").zip
+            cd "$dir"
+            zip -r "../../release-assets/$asset_name" .
+            cd ../..
+          done
+
+      - name: Validate Release Version
+        run: |
+          POM_VERSION=$(mvn -f notething/pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout)
+          TAG_VERSION=${GITHUB_REF#refs/tags/v}
+          
+          echo "Phiên bản trong pom.xml: $POM_VERSION"
+          echo "Phiên bản từ Tag: $TAG_VERSION"
+          
+          if [ "$POM_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::Lỗi: Phiên bản trong pom.xml ($POM_VERSION) không khớp với Tag ($TAG_VERSION)!"
+            exit 1
+          fi
+
+          if ! grep -q "## \[$TAG_VERSION\]" CHANGELOG.md; then
+            echo "::error::Lỗi: Không tìm thấy mục ## [$TAG_VERSION] trong CHANGELOG.md!"
+            exit 1
+          fi
+        shell: bash
+
+      - name: Extract Release Notes
+        id: extract_notes
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          sed -n "/## \[$VERSION\]/,/## \[/p" CHANGELOG.md | sed '1d;$d' > release_notes.md
+          
+          if [ ! -s release_notes.md ]; then
+            echo "::error::Lỗi: Nội dung Changelog cho phiên bản $VERSION đang bị trống!"
+            exit 1
+          fi
+          
+          echo "Nội dung trích xuất thành công."
+        shell: bash
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: release_notes.md
+          files: release-assets/*.zip
+          generate_release_notes: false
+          draft: false
+          prerelease: false
