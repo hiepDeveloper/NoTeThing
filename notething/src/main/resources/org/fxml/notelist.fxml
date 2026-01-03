@@ -3,40 +3,160 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Spinner?>
+<?import atlantafx.base.controls.ToggleSwitch?>
 <?import javafx.geometry.Insets?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
 <VBox xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" 
-      fx:controller="org.NoteListController" styleClass="note-list-root" spacing="10">
-   <padding>
-      <Insets top="15" right="15" bottom="15" left="15"/>
-   </padding>
+      fx:controller="org.NoteListController" styleClass="note-list-root">
    
    <children>
-      <!-- Tiêu đề lớn & Button thêm mới -->
-      <HBox alignment="CENTER_LEFT" spacing="10">
+      <StackPane VBox.vgrow="ALWAYS">
          <children>
-            <Label text="NoTeThing" styleClass="list-title"/>
-            <Region HBox.hgrow="ALWAYS" />
-            <Button onAction="#toggleAppTheme" styleClass="action-button">
-               <graphic>
-                  <FontIcon fx:id="themeIcon" iconLiteral="bi-moon-stars" iconSize="18" />
-               </graphic>
-            </Button>
-            <Button text=" Ghi chú mới" onAction="#createNewNote" styleClass="primary-button">
-               <graphic>
-                  <FontIcon iconLiteral="bi-plus" iconSize="16" />
-               </graphic>
-            </Button>
+            <!-- VIEW 1: Danh sách ghi chú -->
+            <VBox fx:id="noteListViewContent" spacing="10">
+               <padding>
+                  <Insets top="15" right="15" bottom="15" left="15"/>
+               </padding>
+               <children>
+                  <HBox alignment="CENTER_LEFT" spacing="10">
+                     <children>
+                        <Label fx:id="appTitleLabel" text="NoTeThing" styleClass="list-title"/>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button fx:id="trashToggleBtn" onAction="#toggleTrashView" styleClass="action-button">
+                           <graphic>
+                              <FontIcon iconLiteral="bi-trash" iconSize="18" />
+                           </graphic>
+                        </Button>
+                        <Button onAction="#showSettings" styleClass="action-button">
+                           <graphic>
+                              <FontIcon iconLiteral="bi-gear" iconSize="18" />
+                           </graphic>
+                        </Button>
+                        <Button text=" Ghi chú mới" onAction="#createNewNote" styleClass="primary-button">
+                           <graphic>
+                              <FontIcon iconLiteral="bi-plus" iconSize="16" />
+                           </graphic>
+                        </Button>
+                     </children>
+                  </HBox>
+                  <ListView fx:id="noteListView" VBox.vgrow="ALWAYS" styleClass="note-list"/>
+               </children>
+            </VBox>
+
+            <!-- VIEW 2: Cài đặt -->
+            <VBox fx:id="settingsViewContent" spacing="0" visible="false">
+               <children>
+                  <!-- Header của Cài đặt -->
+                  <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-background-color: -note-selection-bg;">
+                     <padding>
+                        <Insets top="15" right="15" bottom="15" left="15"/>
+                     </padding>
+                     <children>
+                        <Button onAction="#showNoteList" styleClass="action-button">
+                           <graphic>
+                              <FontIcon iconLiteral="bi-arrow-left" iconSize="20" />
+                           </graphic>
+                        </Button>
+                        <Label text="Cài đặt" styleClass="list-title" style="-fx-padding: 0;"/>
+                     </children>
+                  </HBox>
+                  
+                  <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="edge-to-edge, settings-scroll">
+                     <content>
+                        <VBox spacing="15">
+                           <padding>
+                              <Insets top="20" right="20" bottom="20" left="20"/>
+                           </padding>
+                           <children>
+                              <!-- Phần Tài khoản -->
+                              <Label text="Tài khoản" styleClass="title-4"/>
+                              <VBox spacing="10" styleClass="settings-box">
+                                 <padding>
+                                    <Insets top="15" right="15" bottom="15" left="15"/>
+                                 </padding>
+                                 <children>
+                                    <HBox fx:id="accountBox" alignment="CENTER_LEFT" spacing="15">
+                                       <children>
+                                          <FontIcon iconLiteral="bi-person-circle" iconSize="32" />
+                                          <VBox>
+                                             <Label fx:id="userStatusLabel" text="Chưa đăng nhập" style="-fx-font-weight: bold;"/>
+                                             <Label fx:id="userEmailLabel" text="Đăng nhập để đồng bộ ghi chú" styleClass="caption"/>
+                                          </VBox>
+                                          <Region HBox.hgrow="ALWAYS" />
+                                          <Button fx:id="loginButton" text="Đăng nhập" onAction="#handleLoginAction" styleClass="accent"/>
+                                       </children>
+                                    </HBox>
+                                 </children>
+                              </VBox>
+                              
+                              <HBox alignment="CENTER_LEFT">
+                                 <children>
+                                    <Label text="Đồng bộ lưu trữ đám mây" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <ToggleSwitch fx:id="syncToggle"/>
+                                 </children>
+                              </HBox>
+                              
+                              <Separator />
+                              
+                              <!-- Phần Cá nhân hóa -->
+                              <Label text="Cá nhân hóa" styleClass="title-4"/>
+                              
+                              <VBox spacing="15" fillWidth="true">
+                                 <children>
+                                    <!-- Hàng: Giao diện -->
+                                    <HBox alignment="CENTER_LEFT">
+                                       <children>
+                                          <Label text="Giao diện" />
+                                          <Region HBox.hgrow="ALWAYS" />
+                                          <ComboBox fx:id="themeCombo" prefWidth="150" />
+                                       </children>
+                                    </HBox>
+                                    
+                                    <!-- Hàng: Acrylic -->
+                                    <HBox alignment="CENTER_LEFT">
+                                       <children>
+                                          <Label text="Hiệu ứng kính mờ" />
+                                          <Region HBox.hgrow="ALWAYS" />
+                                          <ToggleSwitch fx:id="acrylicToggle" />
+                                       </children>
+                                    </HBox>
+                                    
+                                    <!-- Hàng: Auto-hide title -->
+                                    <HBox alignment="CENTER_LEFT">
+                                       <children>
+                                          <Label text="Tự động ẩn tiêu đề" />
+                                          <Region HBox.hgrow="ALWAYS" />
+                                          <ToggleSwitch fx:id="autoHideTitleToggle" />
+                                       </children>
+                                    </HBox>
+
+                                    <!-- Hàng: Cỡ chữ -->
+                                    <HBox alignment="CENTER_LEFT">
+                                       <children>
+                                          <Label text="Cỡ chữ" />
+                                          <Region HBox.hgrow="ALWAYS" />
+                                          <Spinner fx:id="fontSizeSpinner" prefWidth="100" editable="true" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                              </VBox>
+                           </children>
+                        </VBox>
+                     </content>
+                  </ScrollPane>
+               </children>
+            </VBox>
          </children>
-      </HBox>
-      
-      <!-- Placeholder nếu danh sách trống (Optional - để làm sau) -->
-      
-      <!-- Note List -->
-      <ListView fx:id="noteListView" VBox.vgrow="ALWAYS" styleClass="note-list"/>
+      </StackPane>
    </children>
 </VBox>

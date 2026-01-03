@@ -15,18 +15,44 @@ import javafx.stage.Stage;
 
 public class GlassHelper {
 
-    public static void enableBlur(Stage stage) {
+    public static void applyBlur(Stage stage, boolean enable) {
         String os = System.getProperty("os.name").toLowerCase();
         if (os.contains("win")) {
-            enableWindowsBlur(stage);
+            applyWindowsBlur(stage, enable);
         } else if (os.contains("nix") || os.contains("nux") || os.contains("aix")) {
-            enableLinuxBlur(stage);
+            applyLinuxBlur(stage, enable);
+        }
+    }
+
+    /**
+     * Bật/Tắt chế độ tối cho thanh tiêu đề hệ thống (Windows 10/11).
+     */
+    public static void setDarkTitleBar(Stage stage, boolean dark) {
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.contains("win")) {
+            javafx.application.Platform.runLater(() -> {
+                try {
+                    String title = stage.getTitle();
+                    if (title == null || title.isEmpty()) return;
+                    WinDef.HWND hwnd = User32Wrapper.INSTANCE.FindWindow(null, title);
+                    if (hwnd != null) {
+                        IntByReference pvAttribute = new IntByReference(dark ? 1 : 0);
+                        // DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+                        Dwmapi.INSTANCE.DwmSetWindowAttribute(hwnd, 20, pvAttribute, 4);
+                        
+                        // Đối với một số phiên bản Windows cũ hơn, cần attribute 19
+                        Dwmapi.INSTANCE.DwmSetWindowAttribute(hwnd, 19, pvAttribute, 4);
+                    }
+                } catch (Exception e) {
+                    // Ignore
+                }
+            });
         }
     }
 
     // ================= WINDOWS IMPLEMENTATION =================
 
-    private static void enableWindowsBlur(Stage stage) {
+    private static void applyWindowsBlur(Stage stage, boolean enable) {
         javafx.application.Platform.runLater(() -> {
             try {
                 String title = stage.getTitle();
@@ -39,7 +65,7 @@ public class GlassHelper {
                     data.Attribute = User32Wrapper.WindowCompositionAttribute.WCA_ACCENT_POLICY;
                     
                     AccentPolicy accent = new AccentPolicy();
-                    accent.AccentState = User32Wrapper.AccentState.ACCENT_ENABLE_BLURBEHIND;
+                    accent.AccentState = enable ? User32Wrapper.AccentState.ACCENT_ENABLE_BLURBEHIND : User32Wrapper.AccentState.ACCENT_DISABLED;
                     accent.AccentFlags = 0;
                     accent.GradientColor = 0; 
                     accent.AnimationId = 0;
@@ -148,7 +174,7 @@ public class GlassHelper {
 
     // ================= LINUX (X11) IMPLEMENTATION =================
 
-    private static void enableLinuxBlur(Stage stage) {
+    private static void applyLinuxBlur(Stage stage, boolean enable) {
         javafx.application.Platform.runLater(() -> {
             try {
                 String targetTitle = stage.getTitle();
@@ -178,10 +204,13 @@ public class GlassHelper {
                         // just the existence of the property.
                         // Let's try setting a dummy value of 0.
                         
-                        int[] data = new int[]{0}; 
-                        // CARDINAL format=32
-                        x11.XChangeProperty(display, windowId, atom, x11.XInternAtom(display, "CARDINAL", false), 
-                                            32, X11.PropModeReplace, data, 0); // nitems = 0 -> empty region?
+                        if (enable) {
+                            int[] data = new int[]{0}; 
+                            x11.XChangeProperty(display, windowId, atom, x11.XInternAtom(display, "CARDINAL", false), 
+                                                32, X11.PropModeReplace, data, 0);
+                        } else {
+                            x11.XDeleteProperty(display, windowId, atom);
+                        }
                         // Note: Some docs say empty region = no blur.
                         // Ideally we should not set specific region to mean "default behavior"? 
                         // Let's trying setting nitems=0.
@@ -271,6 +300,7 @@ public class GlassHelper {
         int XFree(Pointer data);
         
         NativeLong XInternAtom(Pointer display, String atom_name, boolean only_if_exists);
+        int XDeleteProperty(Pointer display, NativeLong w, NativeLong property);
         
         int XChangeProperty(Pointer display, NativeLong w, NativeLong property, NativeLong type, 
                             int format, int mode, int[] data, int nelements); 

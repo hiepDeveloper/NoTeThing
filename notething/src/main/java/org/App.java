@@ -18,19 +18,49 @@ import javafx.stage.Stage;
  * Lớp khởi chạy ứng dụng Sticky Note.
  */
 public class App extends Application {
+    public enum ThemeMode {
+        SYSTEM, LIGHT, DARK
+    }
+    
+    private static ThemeMode currentThemeMode = ThemeMode.SYSTEM;
     private static boolean isDarkMode = false;
+    private static boolean isGlassEnabled = true;
+    private static boolean isAutoHideTitleEnabled = true;
+    private static boolean isCloudSyncEnabled = false;
+    private static int currentFontSize = 18;
 
     @Override
     public void start(Stage stage) throws IOException {
-        // Tải font chữ viết tay tùy chỉnh
-        javafx.scene.text.Font.loadFont(getClass().getResourceAsStream("/org/font/FuzzyBubbles-Regular.ttf"), 16);
-        javafx.scene.text.Font.loadFont(getClass().getResourceAsStream("/org/font/FuzzyBubbles-Bold.ttf"), 16);
+        // Tải font chữ Mali mới (Hỗ trợ đầy đủ Bold/Italic)
+        try {
+            javafx.scene.text.Font.loadFont(getClass().getResourceAsStream("/org/font/Mali/Mali-Regular.ttf"), 18);
+            javafx.scene.text.Font.loadFont(getClass().getResourceAsStream("/org/font/Mali/Mali-Bold.ttf"), 18);
+            javafx.scene.text.Font.loadFont(getClass().getResourceAsStream("/org/font/Mali/Mali-Italic.ttf"), 18);
+            javafx.scene.text.Font.loadFont(getClass().getResourceAsStream("/org/font/Mali/Mali-BoldItalic.ttf"), 18);
+            
+            System.out.println("✓ Mali fonts loaded successfully");
+        } catch (Exception e) {
+            System.err.println("✗ Error loading Mali fonts: " + e.getMessage());
+        }
         
         // Tải cài đặt giao diện
-        isDarkMode = NoteManager.getInstance().loadDarkMode();
+        String savedMode = NoteManager.getInstance().loadThemeMode();
+        currentThemeMode = ThemeMode.valueOf(savedMode);
+        isGlassEnabled = NoteManager.getInstance().loadGlassEffect();
+        isAutoHideTitleEnabled = NoteManager.getInstance().loadAutoHideTitle();
+        currentFontSize = NoteManager.getInstance().loadFontSize();
+        isCloudSyncEnabled = NoteManager.getInstance().loadCloudSync();
+        
+        // CỦNG CỐ BẢO MẬT: Nếu chưa đăng nhập, ép buộc tắt đồng bộ đám mây
+        if (!FirebaseAuthManager.getInstance().isLoggedIn()) {
+            isCloudSyncEnabled = false;
+        }
         
         // Thiết lập giao diện ban đầu
         applyTheme();
+        
+        // Bắt đầu theo dõi sự thay đổi của hệ thống nếu là chế độ SYSTEM
+        startSystemThemeMonitor();
         
         // Tự động đóng ứng dụng khi hết cửa sổ
         Platform.setImplicitExit(true);
@@ -66,11 +96,14 @@ public class App extends Application {
         }
         stage.show();
         
+        // Cập nhật màu thanh tiêu đề cho Windows
+        GlassHelper.setDarkTitleBar(stage, isDarkMode);
+        
         NoteManager.getInstance().setNoteListStage(stage);
         
         stage.setOnCloseRequest(e -> {
             // Kiểm tra xem có ghi chú nào đang mở không
-            boolean anyNoteShowing = NoteManager.getInstance().getNotes().stream()
+            boolean anyNoteShowing = NoteManager.getInstance().getAllNotes().stream()
                 .anyMatch(n -> n.getStage() != null && n.getStage().isShowing());
             
             if (anyNoteShowing) {
@@ -156,6 +189,7 @@ public class App extends Application {
                 note.setAlwaysOnTop(data.isAlwaysOnTop());
                 if (data.getColor() != null) note.setColor(data.getColor());
                 note.setOpacity(data.getOpacity());
+                note.setDeleted(data.isDeleted());
             } else {
                 note.setTitle(NoteManager.getInstance().getNextDefaultTitle());
             }
@@ -170,7 +204,7 @@ public class App extends Application {
                     stage.setTitle(noteId);
                     
                     javafx.application.Platform.runLater(() -> {
-                        GlassHelper.enableBlur(stage);
+                        GlassHelper.applyBlur(stage, isGlassEnabled);
                     });
                 }
             });
@@ -188,6 +222,7 @@ public class App extends Application {
             // Hiển thị nếu là ghi chú mới hoặc đang mở
             if (data == null || data.isOpen()) {
                 stage.show();
+                GlassHelper.setDarkTitleBar(stage, isDarkMode); // Đảm bảo title bar đúng màu
                 javafx.application.Platform.runLater(() -> {
                     controller.focusContent();
                 });
@@ -207,13 +242,119 @@ public class App extends Application {
     }
 
     /**
-     * Chuyển đổi giữa giao diện Sáng và Tối.
+     * Chuyển đổi giữa giao diện Sáng và Tối (cho bản cũ, nay dùng setThemeMode).
      */
     public static void toggleTheme() {
-        isDarkMode = !isDarkMode;
+        if (currentThemeMode == ThemeMode.LIGHT) {
+            setThemeMode(ThemeMode.DARK);
+        } else {
+            setThemeMode(ThemeMode.LIGHT);
+        }
+    }
+
+    public static void setThemeMode(ThemeMode mode) {
+        currentThemeMode = mode;
         applyTheme();
-        // Lưu cài đặt ngay khi thay đổi
-        NoteManager.getInstance().saveSettings(isDarkMode);
+        NoteManager.getInstance().saveSettings(mode.name(), isGlassEnabled, isAutoHideTitleEnabled, currentFontSize, isCloudSyncEnabled);
+    }
+
+    public static void setGlassEnabled(boolean enabled) {
+        isGlassEnabled = enabled;
+        // Chỉ cập nhật hiệu ứng cho các tờ ghi chú (vì chúng là Transparent Stage)
+        // Cửa sổ danh sách chính là Decorated Stage, không nên áp dụng hiệu ứng này để tránh lỗi UI
+        for (Note note : NoteManager.getInstance().getAllNotes()) {
+            if (note.getStage() != null) {
+                GlassHelper.applyBlur(note.getStage(), isGlassEnabled);
+            }
+        }
+        NoteManager.getInstance().saveSettings(currentThemeMode.name(), isGlassEnabled, isAutoHideTitleEnabled, currentFontSize, isCloudSyncEnabled);
+    }
+
+    public static void setAutoHideTitleEnabled(boolean enabled) {
+        isAutoHideTitleEnabled = enabled;
+        // Cập nhật các cửa sổ đang mở
+        for (Note note : NoteManager.getInstance().getAllNotes()) {
+            if (note.getController() != null) {
+                note.getController().refreshAutoHideState();
+            }
+        }
+        NoteManager.getInstance().saveSettings(currentThemeMode.name(), isGlassEnabled, isAutoHideTitleEnabled, currentFontSize, isCloudSyncEnabled);
+    }
+
+    public static void setFontSize(int size) {
+        currentFontSize = size;
+        // Cập nhật tất cả ghi chú
+        for (Note note : NoteManager.getInstance().getAllNotes()) {
+            if (note.getController() != null) {
+                note.getController().refreshFontSize();
+            }
+        }
+        NoteManager.getInstance().saveSettings(currentThemeMode.name(), isGlassEnabled, isAutoHideTitleEnabled, currentFontSize, isCloudSyncEnabled);
+    }
+
+    public static int getFontSize() {
+        return currentFontSize;
+    }
+
+    public static void triggerSyncCloud() {
+        if (isCloudSyncEnabled && FirebaseAuthManager.getInstance().isLoggedIn() && FirebaseManager.getInstance().isInitialized()) {
+            // Chạy ngầm để không treo UI
+            new Thread(() -> {
+                List<NoteData> notes = NoteManager.getInstance().loadNotes();
+                FirebaseManager.getInstance().syncToCloud(notes, FirebaseAuthManager.getInstance().getLocalId());
+            }).start();
+        }
+    }
+
+    public static void syncDownFromCloud() {
+        if (isCloudSyncEnabled && FirebaseAuthManager.getInstance().isLoggedIn() && FirebaseManager.getInstance().isInitialized()) {
+            new Thread(() -> {
+                try {
+                    List<NoteData> cloudNotes = FirebaseManager.getInstance().loadFromCloud(FirebaseAuthManager.getInstance().getLocalId());
+                    if (cloudNotes.isEmpty()) return;
+
+                    Platform.runLater(() -> {
+                        for (NoteData data : cloudNotes) {
+                            Note existing = NoteManager.getInstance().findNoteById(data.getId());
+                            if (existing == null) {
+                                restoreNote(data);
+                            } else {
+                                // Cập nhật nội dung nếu local cũ hơn (Đơn giản hóa: ghi đè bằng Cloud)
+                                existing.setTitle(data.getTitle());
+                                existing.setContent(data.getContent());
+                                if (existing.getController() != null) {
+                                    existing.getController().setNote(existing); 
+                                }
+                            }
+                        }
+                        NoteManager.getInstance().saveNotes();
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }).start();
+        }
+    }
+
+    public static void setCloudSyncEnabled(boolean enabled) {
+        isCloudSyncEnabled = enabled;
+        NoteManager.getInstance().saveSettings(currentThemeMode.name(), isGlassEnabled, isAutoHideTitleEnabled, currentFontSize, isCloudSyncEnabled);
+    }
+
+    public static boolean isCloudSyncEnabled() {
+        return isCloudSyncEnabled;
+    }
+
+    public static boolean isAutoHideTitleEnabled() {
+        return isAutoHideTitleEnabled;
+    }
+
+    public static boolean isGlassEnabled() {
+        return isGlassEnabled;
+    }
+
+    public static ThemeMode getThemeMode() {
+        return currentThemeMode;
     }
 
     public static boolean isDarkMode() {
@@ -221,6 +362,12 @@ public class App extends Application {
     }
 
     private static void applyTheme() {
+        if (currentThemeMode == ThemeMode.SYSTEM) {
+            isDarkMode = ThemeDetector.isSystemDarkMode();
+        } else {
+            isDarkMode = (currentThemeMode == ThemeMode.DARK);
+        }
+
         if (isDarkMode) {
             Application.setUserAgentStylesheet(new atlantafx.base.theme.PrimerDark().getUserAgentStylesheet());
         } else {
@@ -231,19 +378,42 @@ public class App extends Application {
         updateStylesheetsAcrossWindows();
     }
 
+    private static void startSystemThemeMonitor() {
+        // Kiểm tra mỗi 2 giây nếu đang ở chế độ SYSTEM
+        javafx.animation.Timeline timeline = new javafx.animation.Timeline(
+            new javafx.animation.KeyFrame(javafx.util.Duration.seconds(2), e -> {
+                if (currentThemeMode == ThemeMode.SYSTEM) {
+                    boolean systemDark = ThemeDetector.isSystemDarkMode();
+                    if (systemDark != isDarkMode) {
+                        applyTheme();
+                    }
+                }
+            })
+        );
+        timeline.setCycleCount(javafx.animation.Timeline.INDEFINITE);
+        timeline.play();
+    }
+
     private static void updateStylesheetsAcrossWindows() {
         // 1. Cập nhật Note List
         Stage listStage = NoteManager.getInstance().getNoteListStage();
-        if (listStage != null && listStage.getScene() != null) {
-            updateRootTheme(listStage.getScene().getRoot());
+        if (listStage != null) {
+            GlassHelper.setDarkTitleBar(listStage, isDarkMode);
+            if (listStage.getScene() != null) {
+                updateRootTheme(listStage.getScene().getRoot());
+            }
         }
 
         // 2. Cập nhật tất cả các ghi chú (bao gồm cả ghi chú đang đóng)
-        for (Note note : NoteManager.getInstance().getNotes()) {
-            if (note.getStage() != null && note.getStage().getScene() != null) {
-                updateRootTheme(note.getStage().getScene().getRoot());
-                if (note.getController() != null) {
-                    note.getController().refreshTheme();
+        for (Note note : NoteManager.getInstance().getAllNotes()) {
+            Stage stage = note.getStage();
+            if (stage != null) {
+                GlassHelper.setDarkTitleBar(stage, isDarkMode);
+                if (stage.getScene() != null) {
+                    updateRootTheme(stage.getScene().getRoot());
+                    if (note.getController() != null) {
+                        note.getController().refreshTheme();
+                    }
                 }
             }
         }

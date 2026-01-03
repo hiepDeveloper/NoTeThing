@@ -8,6 +8,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-01-03 - Cloud Sync, Trash Bin & Settings
+
+### Added
+- **Cloud Synchronization**: Seamlessly sync notes across devices using Google Firebase (Realtime Database).
+    - Requires `serviceAccountKey.json` configuration.
+    - Secure login/logout flow.
+- **Trash Bin & Recovery**: 
+    - **Soft Delete**: Notes moved to trash can be restored.
+    - **Safety First**: Confirmation dialogs for deletion.
+    - **Trash View**: Dedicated view to manage deleted notes.
+- **Centralized Settings**: New configuration interface in the Note List.
+    - **Theme System**: Option to sync with **System Theme** (default), or force Light/Dark.
+    - **Visual Control**: Toggles for **Acrylic (Glass)** effect and **Auto-hide Title** (both Enabled by default).
+- **Enhanced Typography**: Integrated **Mali** font family with full support for **Bold**, *Italic*, and ***BoldItalic*** styles.
+
+### Changed
+- **Editor Stability**: Reverted the core text editor to a native `TextArea` to ensure 100% stability and eliminate rendering artifacts.
+- **Performance**: Optimized data structures for handling active vs. deleted notes.
+- **UI Enhancements**: Added clear placeholder text ("Viết ghi chú...") and improved empty state visibility.
+
 ## [0.2.1] - 2026-01-01 - Fix UI & Linux support
 
 ### Fixed

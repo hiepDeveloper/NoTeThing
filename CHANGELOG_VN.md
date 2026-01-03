@@ -8,7 +8,22 @@ Tất cả các thay đổi đáng chú ý của dự án này sẽ được ghi
 Định dạng dựa trên [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 và dự án này tuân thủ [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.1] - 2026-01-01 - Bản dựng Portable & Hỗ trợ Linux
+## [0.3.0] - 2026-01-03 - Đồng bộ Đám mây, Thùng rác & Cài đặt
+
+### Đã thêm
+- **Đồng bộ Đám mây**: Đồng bộ ghi chú mượt mà qua các thiết bị sử dụng Google Firebase (Realtime Database).
+    - Hỗ trợ cấu hình `serviceAccountKey.json`.
+    - Quy trình đăng nhập/đăng xuất bảo mật.
+- **Thùng rác & Khôi phục**:
+    - **Xóa mềm (Soft Delete)**: Ghi chú chuyển vào thùng rác có thể khôi phục lại bất cứ lúc nào.
+    - **An toàn là trên hết**: Hộp thoại xác nhận trước khi xóa vĩnh viễn.
+    - **Giao diện Thùng rác**: Khu vực riêng biệt để quản lý các ghi chú đã xóa.
+- **Cài đặt Tập trung**: Giao diện cấu hình mới trong Danh sách ghi chú.
+    - **Hệ thống Chủ đề**: Tùy chọn đồng bộ theo **Chủ đề Máy tính** (mặc định), hoặc ép sáng/tối.
+    - **Kiểm soát Hiệu ứng**: Bật/Tắt hiệu ứng **Kính mờ (Acrylic)** và **Tự động ẩn tiêu đề** (mặc định Bật).
+- **Nâng cấp Typography**: Tích hợp bộ font **Mali** hỗ trợ đầy đủ các kiểu **Đậm**, *Nghiêng*, và ***Đậm Nghiêng***.
+
+## [0.2.1] - 2026-01-01 - Sửa UI & Hỗ trợ Linux
 
 ### Đã sửa lỗi
 - **Đồng bộ hóa Chủ đề**: Khắc phục lỗi thay đổi theme từ Danh sách ghi chú không áp dụng ngay cho các ghi chú hiện có (trước đây yêu cầu phải chỉnh độ trong suốt mới cập nhật).
@@ -19,7 +34,7 @@ và dự án này tuân thủ [Semantic Versioning](https://semver.org/spec/v2.0
     - Điều chỉnh chiều ngang tối thiểu về 220px để linh hoạt hơn trong việc sắp xếp không gian màn hình.
     - Cải thiện độ nhạy của vùng bắt sự kiện resize và tính ổn định khi xử lý sự kiện native.
 
-## [0.2.0] - 2025-12-31
+## [0.2.0] - 2025-12-31 - Nâng cấp giao diện tùy chỉnh
 
 ### Đã thêm
 - **Chế độ Tối (Dark Mode)**: Hỗ trợ chuyển đổi theme toàn diện, tự động ghi nhớ cài đặt và cập nhật thời gian thực cho tất cả cửa sổ.
@@ -32,7 +47,7 @@ và dự án này tuân thủ [Semantic Versioning](https://semver.org/spec/v2.0
 - **Nâng cấp Danh sách ghi chú**: Mở rộng không gian hiển thị (400px) và tinh chỉnh font chữ giúp đọc nội dung dễ dàng hơn.
 - **Cải thiện tương tác**: Thanh trượt độ nhạy cao, mở rộng vùng bắt sự kiện và các nút bấm phản hồi thông minh theo màu nền.
 
-## [0.1.0] - 2025-12-30
+## [0.1.0] - 2025-12-30 - Bản dựng cơ bản
 
 ### Đã thêm
 - **Cốt lõi**: Phiên bản đầu tiên của ứng dụng ghi chú NoTeThing.

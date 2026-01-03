@@ -5,6 +5,10 @@
  */
 package org;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.stage.Stage;
@@ -15,13 +19,15 @@ import javafx.stage.Stage;
 public class Note {
     private final StringProperty title;
     private final StringProperty content;
-    private final javafx.beans.property.DoubleProperty x;
-    private final javafx.beans.property.DoubleProperty y;
-    private final javafx.beans.property.DoubleProperty width;
-    private final javafx.beans.property.DoubleProperty height;
-    private final javafx.beans.property.BooleanProperty alwaysOnTop;
+    private final DoubleProperty x;
+    private final DoubleProperty y;
+    private final DoubleProperty width;
+    private final DoubleProperty height;
+    private final BooleanProperty alwaysOnTop;
     private final StringProperty color;
-    private final javafx.beans.property.DoubleProperty opacity;
+    private final DoubleProperty opacity;
+    private final StringProperty richContent;
+    private final BooleanProperty deleted; // Đánh dấu đã xóa vào thùng rác
 
     
     private Stage stage;
@@ -34,15 +40,17 @@ public class Note {
         this.id = id;
         this.title = new SimpleStringProperty("");
         this.content = new SimpleStringProperty("");
-        this.alwaysOnTop = new javafx.beans.property.SimpleBooleanProperty(false);
+        this.alwaysOnTop = new SimpleBooleanProperty(false);
         this.color = new SimpleStringProperty("color-yellow");
-        this.opacity = new javafx.beans.property.SimpleDoubleProperty(1.0);
+        this.opacity = new SimpleDoubleProperty(1.0);
+        this.richContent = new SimpleStringProperty("");
+        this.deleted = new SimpleBooleanProperty(false);
         
         // Khởi tạo các thuộc tính vị trí và kích thước
-        this.x = new javafx.beans.property.SimpleDoubleProperty(stage.getX());
-        this.y = new javafx.beans.property.SimpleDoubleProperty(stage.getY());
-        this.width = new javafx.beans.property.SimpleDoubleProperty(stage.getWidth());
-        this.height = new javafx.beans.property.SimpleDoubleProperty(stage.getHeight());
+        this.x = new SimpleDoubleProperty(stage != null ? stage.getX() : 0);
+        this.y = new SimpleDoubleProperty(stage != null ? stage.getY() : 0);
+        this.width = new SimpleDoubleProperty(stage != null ? stage.getWidth() : 300);
+        this.height = new SimpleDoubleProperty(stage != null ? stage.getHeight() : 400);
         
         // Cập nhật thuộc tính khi cửa sổ thay đổi
         if (stage != null) {
@@ -87,7 +95,7 @@ public class Note {
     
     public boolean isAlwaysOnTop() { return alwaysOnTop.get(); }
     public void setAlwaysOnTop(boolean value) { alwaysOnTop.set(value); }
-    public javafx.beans.property.BooleanProperty alwaysOnTopProperty() { return alwaysOnTop; }
+    public BooleanProperty alwaysOnTopProperty() { return alwaysOnTop; }
     
     public String getColor() { return color.get(); }
     public void setColor(String value) { color.set(value); }
@@ -95,9 +103,15 @@ public class Note {
     
     public double getOpacity() { return opacity.get(); }
     public void setOpacity(double value) { opacity.set(value); }
-    public javafx.beans.property.DoubleProperty opacityProperty() { return opacity; }
+    public DoubleProperty opacityProperty() { return opacity; }
     
+    public String getRichContent() { return richContent.get(); }
+    public void setRichContent(String value) { richContent.set(value); }
+    public StringProperty richContentProperty() { return richContent; }
 
+    public boolean isDeleted() { return deleted.get(); }
+    public void setDeleted(boolean value) { deleted.set(value); }
+    public BooleanProperty deletedProperty() { return deleted; }
     
     public Stage getStage() { return stage; }
     public void setStage(Stage stage) { this.stage = stage; }
@@ -108,4 +122,3 @@ public class Note {
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 }
-

@@ -1,52 +1,68 @@
 package org;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.shape.Circle;
+import javafx.stage.Popup;
+import javafx.stage.Stage;
 
 /**
- * Điều khiển cửa sổ ghi chú.
+ * Điều khiển cửa sổ ghi chú. (Quay về TextArea thuần túy)
  */
 public class PrimaryController {
 
-    @FXML
-    private javafx.scene.layout.StackPane rootPane;
+    @FXML private StackPane rootPane;
+    @FXML private VBox contentBox;
+    @FXML private HBox headerBox;
+    @FXML private TextField noteTitle;
+    @FXML private StackPane editorContainer;
+    @FXML private Button alwaysOnTopButton;
+    @FXML private org.kordamp.ikonli.javafx.FontIcon alwaysOnTopIcon;
 
-    @FXML
-    private javafx.scene.layout.VBox contentBox;
-
-    @FXML
-    private javafx.scene.layout.HBox headerBox;
-
-    @FXML
-    private javafx.scene.control.TextField noteTitle;
-
-    @FXML
-    private javafx.scene.control.TextArea noteContent;
+    private TextArea editor;
     
-    @FXML
-    private javafx.scene.control.Button alwaysOnTopButton;
-    
-    @FXML
-    private org.kordamp.ikonli.javafx.FontIcon alwaysOnTopIcon;
-
     private double xOffset = 0;
     private double yOffset = 0;
     
+    // Margin để resize cửa sổ
     private static final int RESIZE_MARGIN = 14;
     
     private Note note;
-    private int savedCaretPosition = 0;
+    private boolean isUpdatingFromModel = false;
 
     /**
      * Khởi tạo và thiết lập sự kiện.
      */
     public void initialize() {
+        // Sử dụng TextArea thuần túy
+        editor = new TextArea();
+        editor.setWrapText(true);
+        editor.setPromptText("Viết ghi chú...");
+        editor.getStyleClass().add("text-area-editor");
+        // Xóa style mặc định của TextArea để nó trong suốt
+        editor.setStyle("-fx-background-color: transparent; -fx-control-inner-background: transparent; -fx-background-insets: 0; -fx-text-fill: -note-text-color; -fx-prompt-text-fill: -note-prompt-color;");
+
+        editorContainer.getChildren().add(editor);
+
         // Xử lý sự kiện kéo dãn (resize)
-        rootPane.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_MOVED, event -> {
+        rootPane.addEventFilter(MouseEvent.MOUSE_MOVED, event -> {
             boolean nearEdge = isNearEdge(event.getSceneX(), event.getSceneY(), 
                                          rootPane.getScene().getWidth(), rootPane.getScene().getHeight());
             
             // Cho phép chuột tương tác với cạnh cửa sổ
-            noteContent.setMouseTransparent(nearEdge);
+            editor.setMouseTransparent(nearEdge);
             if (noteTitle != null) {
                 noteTitle.setMouseTransparent(nearEdge);
             }
@@ -63,12 +79,24 @@ public class PrimaryController {
                             }
                         });
                         
-                        // Ẩn/hiện header khi focus thay đổi
+                        // Ẩn/hiện tiêu đề khi focus thay đổi
                         newWin.focusedProperty().addListener((obs3, wasFocused, isFocused) -> {
-                            toggleHeaderVisibility(isFocused);
+                            refreshAutoHideState();
                         });
                     }
                 });
+            }
+        });
+        
+        // Theo dõi thay đổi text để lưu vào note
+        // Sử dụng một cơ chế debounce đơn giản thủ công hoặc bind
+        editor.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (!isUpdatingFromModel && note != null) {
+                note.setContent(newVal);
+                // Vì TextArea không có thư viện ReactFX tích hợp sẵn như RichTextFX,
+                // ta sẽ gọi saveNotes() ngay hoặc có thể tự implement debounce nếu muốn.
+                // Ở đây gọi luôn cho đơn giản, NoteManager có thể tự lo việc ghi đĩa hiệu quả nếu cần.
+                NoteManager.getInstance().saveNotes();
             }
         });
     }
@@ -87,7 +115,23 @@ public class PrimaryController {
                 if (!newVal) NoteManager.getInstance().saveNotes();
             });
         }
-        noteContent.textProperty().bindBidirectional(note.contentProperty());
+        
+        isUpdatingFromModel = true;
+        // Bỏ qua richContent, chỉ dùng content thuần túy
+        if (note.getContent() != null) {
+            editor.setText(note.getContent());
+        }
+        isUpdatingFromModel = false;
+        
+        // Khi model thay đổi (ví dụ từ sync), cập nhật editor
+        note.contentProperty().addListener((obs, oldVal, newVal) -> {
+            if (!isUpdatingFromModel && newVal != null && !newVal.equals(editor.getText())) {
+                isUpdatingFromModel = true;
+                editor.setText(newVal);
+                editor.positionCaret(editor.getLength()); // Di chuyển con trỏ xuống cuối
+                isUpdatingFromModel = false;
+            }
+        });
         
         updateAlwaysOnTopUI(note.isAlwaysOnTop());
         note.alwaysOnTopProperty().addListener((obs, oldVal, newVal) -> {
@@ -106,28 +150,31 @@ public class PrimaryController {
             applyOpacity(newVal.doubleValue());
             NoteManager.getInstance().saveNotes();
         });
+        
+        // Cập nhật cỡ chữ ban đầu
+        refreshFontSize();
+        
+        // Khởi tạo trạng thái ẩn hiện tiêu đề ban đầu
+        refreshAutoHideState();
     }
 
-    /**
-     * Tập trung con trỏ vào vùng nhập nội dung.
-     */
     public void focusContent() {
-        if (noteContent != null) {
-            noteContent.requestFocus();
-            noteContent.positionCaret(noteContent.getText().length());
+        if (editor != null) {
+            editor.requestFocus();
+            editor.positionCaret(editor.getLength());
         }
     }
 
     @FXML
     private void openNoteList() {
         try {
-            javafx.stage.Stage listStage = NoteManager.getInstance().getNoteListStage();
+            Stage listStage = NoteManager.getInstance().getNoteListStage();
             if (listStage != null) {
                 listStage.show();
                 listStage.toFront();
                 if (listStage.isIconified()) listStage.setIconified(false);
             } else {
-                 App.showNoteList(new javafx.stage.Stage());
+                 App.showNoteList(new Stage());
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -136,26 +183,26 @@ public class PrimaryController {
 
     @FXML
     private void minimizeNote() {
-        javafx.stage.Stage stage = (javafx.stage.Stage) headerBox.getScene().getWindow();
+        Stage stage = (Stage) headerBox.getScene().getWindow();
         stage.setIconified(true);
     }
 
     @FXML
     private void closeNote() {
-        javafx.stage.Stage stage = (javafx.stage.Stage) headerBox.getScene().getWindow();
+        Stage stage = (Stage) headerBox.getScene().getWindow();
         stage.close();
         NoteManager.getInstance().saveNotes();
     }
 
     @FXML
-    private void handleMousePressed(javafx.scene.input.MouseEvent event) {
+    private void handleMousePressed(MouseEvent event) {
         xOffset = event.getSceneX();
         yOffset = event.getSceneY();
     }
 
     @FXML
-    private void handleMouseDragged(javafx.scene.input.MouseEvent event) {
-        javafx.stage.Stage stage = (javafx.stage.Stage) headerBox.getScene().getWindow();
+    private void handleMouseDragged(MouseEvent event) {
+        Stage stage = (Stage) headerBox.getScene().getWindow();
         stage.setX(event.getScreenX() - xOffset);
         stage.setY(event.getScreenY() - yOffset);
     }
@@ -188,43 +235,56 @@ public class PrimaryController {
             if (isFocused) {
                 headerBox.setVisible(true);
                 headerBox.setManaged(true);
-                javafx.application.Platform.runLater(() -> {
-                    if (noteContent != null) {
-                        noteContent.requestFocus();
-                        noteContent.positionCaret(savedCaretPosition);
-                        if (noteContent.getText().isEmpty()) {
-                            noteContent.insertText(0, " ");
-                            noteContent.deleteText(0, 1);
-                            noteContent.positionCaret(0);
-                        }
-                    }
+                Platform.runLater(() -> {
+                    if (editor != null) editor.requestFocus();
                 });
-            } else {
-                if (noteContent != null) {
-                    savedCaretPosition = noteContent.getCaretPosition();
-                }
+            } else if (App.isAutoHideTitleEnabled()) {
                 headerBox.setVisible(false);
                 headerBox.setManaged(false);
             }
         }
     }
+
+    public void refreshFontSize() {
+        if (editor != null) {
+            // TextArea cần style font-size trực tiếp
+            String currentStyle = editor.getStyle();
+            // Xóa font-size cũ nếu có (để đơn giản ta set lại toàn bộ style quan trọng)
+             editor.setStyle("-fx-background-color: transparent; -fx-control-inner-background: transparent; -fx-background-insets: 0; -fx-text-fill: -note-text-color; -fx-font-family: 'Mali'; -fx-font-size: " + App.getFontSize() + "px;");
+        }
+    }
+
+    public void refreshAutoHideState() {
+        Platform.runLater(() -> {
+            if (headerBox != null && headerBox.getScene() != null && headerBox.getScene().getWindow() != null) {
+                boolean isFocused = headerBox.getScene().getWindow().isFocused();
+                
+                if (!App.isAutoHideTitleEnabled()) {
+                    headerBox.setVisible(true);
+                    headerBox.setManaged(true);
+                } else {
+                    toggleHeaderVisibility(isFocused);
+                }
+            }
+        });
+    }
     
     @FXML
     private void showColorPicker() {
-        javafx.scene.layout.VBox pickerRoot = new javafx.scene.layout.VBox(15);
+        VBox pickerRoot = new VBox(15);
         pickerRoot.getStyleClass().add("color-menu");
-        pickerRoot.setPadding(new javafx.geometry.Insets(15));
+        pickerRoot.setPadding(new Insets(15));
         pickerRoot.setPrefWidth(220);
         
-        javafx.scene.control.Label titleLabel = new javafx.scene.control.Label("Màu sắc & Độ trong");
+        Label titleLabel = new Label("Màu sắc & Độ trong");
         titleLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: -note-text-color;");
         
-        javafx.scene.layout.HBox colorPalette = new javafx.scene.layout.HBox(8);
-        colorPalette.setAlignment(javafx.geometry.Pos.CENTER);
+        HBox colorPalette = new HBox(8);
+        colorPalette.setAlignment(Pos.CENTER);
         
         String[] colors = {"color-yellow", "color-green", "color-blue", "color-orange", "color-red", "color-purple", "color-gray"};
         for (String colorClass : colors) {
-            javafx.scene.shape.Circle circle = new javafx.scene.shape.Circle(12);
+            Circle circle = new Circle(12);
             circle.getStyleClass().addAll("color-option", "color-preview", colorClass);
             circle.setOnMouseClicked(e -> {
                 if (note != null) {
@@ -235,11 +295,11 @@ public class PrimaryController {
             colorPalette.getChildren().add(circle);
         }
         
-        javafx.scene.layout.VBox opacityBox = new javafx.scene.layout.VBox(5);
-        javafx.scene.control.Label opacityLabel = new javafx.scene.control.Label("Độ trong suốt");
+        VBox opacityBox = new VBox(5);
+        Label opacityLabel = new Label("Độ trong suốt");
         opacityLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: -note-prompt-color;");
         
-        javafx.scene.control.Slider opacitySlider = new javafx.scene.control.Slider(0.1, 1.0, note != null ? note.getOpacity() : 1.0);
+        Slider opacitySlider = new Slider(0.1, 1.0, note != null ? note.getOpacity() : 1.0);
         opacitySlider.setBlockIncrement(0.1);
         opacitySlider.valueProperty().addListener((obs, old, newVal) -> {
             if (note != null) {
@@ -256,13 +316,27 @@ public class PrimaryController {
             pickerRoot.getStyleClass().add("dark");
         }
         
-        javafx.stage.Popup popup = new javafx.stage.Popup();
+        Popup popup = new Popup();
         popup.getContent().add(pickerRoot);
         popup.setAutoHide(true);
         
         javafx.scene.Node source = (javafx.scene.Node) alwaysOnTopButton.getParent().getChildrenUnmodifiable().get(1);
-        javafx.geometry.Bounds bounds = source.localToScreen(source.getBoundsInLocal());
+        Bounds bounds = source.localToScreen(source.getBoundsInLocal());
         popup.show(rootPane.getScene().getWindow(), bounds.getMinX(), bounds.getMaxY() + 5);
+        
+        // Sửa lỗi góc trắng thừa của Popup
+        // Sử dụng runLater để đảm bảo Scene và Window đã được khởi tạo hoàn toàn
+        Platform.runLater(() -> {
+            if (popup.getScene() != null) {
+                // Đặt nền Scene thành trong suốt
+                popup.getScene().setFill(javafx.scene.paint.Color.TRANSPARENT);
+                
+                // Đảm bảo node gốc của Scene cũng trong suốt (đề phòng)
+                if (popup.getScene().getRoot() != null) {
+                     popup.getScene().getRoot().setStyle("-fx-background-color: transparent;");
+                }
+            }
+        });
     }
     
     private void applyColor(String colorClass) {

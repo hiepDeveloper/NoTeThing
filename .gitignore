@@ -5,7 +5,6 @@ target/
 # Distribution and Packages
 notething/dist/
 notething/target/
-notething/scripts/
 *.zip
 
 # IDE
@@ -22,3 +21,10 @@ Thumbs.db
 # Temporary files
 *.log
 *.tmp
+
+# Project plan
+plan/
+
+# Security
+.env
+serviceAccountKey.json

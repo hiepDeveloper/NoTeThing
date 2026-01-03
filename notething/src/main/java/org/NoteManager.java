@@ -12,10 +12,16 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.stage.Stage;
 
 /**
@@ -24,15 +30,27 @@ import javafx.stage.Stage;
 public class NoteManager {
     private static NoteManager instance;
     private ObservableList<Note> notes;
+    private FilteredList<Note> visibleNotes;
+    private FilteredList<Note> deletedNotes;
     private Stage noteListStage;
     
     // Đường dẫn lưu trữ: UserHome/.notething/notes.dat
     private static final String DATA_DIR = System.getProperty("user.home") + File.separator + ".notething";
     private static final String DATA_FILE = DATA_DIR + File.separator + "notes.dat";
-    private static final String SETTINGS_FILE = DATA_DIR + File.separator + "settings.properties";
+    private static final String SETTINGS_FILE = DATA_DIR + File.separator + "settings.json";
+    private final ObjectMapper objectMapper;
 
     private NoteManager() {
-        notes = FXCollections.observableArrayList();
+        // Sử dụng extractor để theo dõi thay đổi của thuộc tính deleted (và các thuộc tính khác nếu cần)
+        // Điều này giúp FilteredList tự động cập nhật khi thuộc tính thay đổi
+        notes = FXCollections.observableArrayList(note -> 
+            new javafx.beans.Observable[] { note.deletedProperty() }
+        );
+        
+        visibleNotes = new FilteredList<>(notes, n -> !n.isDeleted());
+        deletedNotes = new FilteredList<>(notes, n -> n.isDeleted());
+        
+        objectMapper = new ObjectMapper();
         new File(DATA_DIR).mkdirs();
     }
 
@@ -52,10 +70,41 @@ public class NoteManager {
     }
 
     /**
-     * Xóa ghi chú và tự động lưu.
+     * Xóa vĩnh viễn ghi chú và tự động lưu.
      */
-    public void removeNote(Note note) {
+    public void hardDeleteNote(Note note) {
+        if (note.getStage() != null) {
+            note.getStage().close();
+        }
         notes.remove(note);
+        saveNotes();
+    }
+    
+    /**
+     * Chuyển ghi chú vào thùng rác (Soft Delete).
+     */
+    public void softDeleteNote(Note note) {
+        note.setDeleted(true);
+        if (note.getStage() != null) {
+            note.getStage().close();
+        }
+        saveNotes();
+    }
+    
+    /**
+     * Khôi phục ghi chú từ thùng rác.
+     */
+    public void restoreNote(Note note) {
+        note.setDeleted(false);
+        saveNotes();
+    }
+    
+    /**
+     * Làm sạch thùng rác (Xóa tất cả ghi chú đã đánh dấu xóa).
+     */
+    public void emptyTrash() {
+        List<Note> trash = new ArrayList<>(deletedNotes); // Copy list to avoid concurrent mod
+        notes.removeAll(trash);
         saveNotes();
     }
 
@@ -70,6 +119,7 @@ public class NoteManager {
                 note.getId(),
                 note.getTitle(),
                 note.getContent(),
+                note.getRichContent(),
                 note.getX(),
                 note.getY(),
                 note.getWidth(),
@@ -77,7 +127,8 @@ public class NoteManager {
                 isOpen,
                 note.isAlwaysOnTop(),
                 note.getColor(),
-                note.getOpacity()
+                note.getOpacity(),
+                note.isDeleted() // Lưu trạng thái deleted
             ));
         }
         
@@ -86,6 +137,7 @@ public class NoteManager {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        App.triggerSyncCloud();
     }
 
     /**
@@ -99,7 +151,8 @@ public class NoteManager {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
             return (List<NoteData>) ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+            // Nếu lỗi đọc file (do thay đổi version class NoteData), trả về list rỗng hoặc backup
+            System.err.println("Không thể đọc file dữ liệu cũ: " + e.getMessage());
             return new ArrayList<>();
         }
     }
@@ -125,10 +178,33 @@ public class NoteManager {
     }
 
     /**
-     * Lấy danh sách Observable các ghi chú.
+     * Lấy danh sách gốc (Tất cả ghi chú bao gồm đã xóa).
+     * Chỉ dùng nội bộ hoặc cho Sync. Dùng getVisibleNotes() cho UI chính.
      */
+    public ObservableList<Note> getAllNotes() {
+        return notes;
+    }
+
+    /**
+     * @deprecated Sử dụng getAllNotes() hoặc getVisibleNotes() tùy mục đích.
+     */
+    @Deprecated
     public ObservableList<Note> getNotes() {
         return notes;
+    }
+    
+    /**
+     * Lấy danh sách ghi chú đang hiển thị (chưa xóa).
+     */
+    public FilteredList<Note> getVisibleNotes() {
+        return visibleNotes;
+    }
+    
+    /**
+     * Lấy danh sách ghi chú trong thùng rác.
+     */
+    public FilteredList<Note> getDeletedNotes() {
+        return deletedNotes;
     }
 
     /**
@@ -169,31 +245,58 @@ public class NoteManager {
     /**
      * Lưu cài đặt ứng dụng.
      */
-    public void saveSettings(boolean isDarkMode) {
-        java.util.Properties props = new java.util.Properties();
-        props.setProperty("darkMode", String.valueOf(isDarkMode));
-        try (FileOutputStream out = new FileOutputStream(SETTINGS_FILE)) {
-            props.store(out, "NoTeThing Settings");
+    public void saveSettings(String themeMode, boolean glassEffect, boolean autoHideTitle, int fontSize, boolean cloudSync) {
+        Map<String, Object> settings = new HashMap<>();
+        settings.put("themeMode", themeMode);
+        settings.put("glassEffect", glassEffect);
+        settings.put("autoHideTitle", autoHideTitle);
+        settings.put("fontSize", fontSize);
+        settings.put("cloudSync", cloudSync);
+
+        try {
+            objectMapper.writeValue(new File(SETTINGS_FILE), settings);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    /**
-     * Tải cài đặt ứng dụng.
-     */
-    public boolean loadDarkMode() {
-        java.util.Properties props = new java.util.Properties();
+    private JsonNode loadSettingsNode() {
         File file = new File(SETTINGS_FILE);
         if (file.exists()) {
-            try (FileInputStream in = new FileInputStream(file)) {
-                props.load(in);
-                return Boolean.parseBoolean(props.getProperty("darkMode", "false"));
+            try {
+                return objectMapper.readTree(file);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        return false;
+        return null;
+    }
+
+    public String loadThemeMode() {
+        JsonNode node = loadSettingsNode();
+        if (node != null && node.has("themeMode")) {
+            return node.get("themeMode").asText();
+        }
+        return "SYSTEM";
+    }
+
+    public boolean loadGlassEffect() {
+        JsonNode node = loadSettingsNode();
+        return node == null || !node.has("glassEffect") || node.get("glassEffect").asBoolean();
+    }
+
+    public boolean loadAutoHideTitle() {
+        JsonNode node = loadSettingsNode();
+        return node == null || !node.has("autoHideTitle") || node.get("autoHideTitle").asBoolean();
+    }
+
+    public int loadFontSize() {
+        JsonNode node = loadSettingsNode();
+        return (node != null && node.has("fontSize")) ? node.get("fontSize").asInt() : 18;
+    }
+
+    public boolean loadCloudSync() {
+        JsonNode node = loadSettingsNode();
+        return node != null && node.has("cloudSync") && node.get("cloudSync").asBoolean();
     }
 }
-
