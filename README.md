@@ -4,6 +4,7 @@
 [![Tiếng Việt](https://img.shields.io/badge/Ngôn_Ngữ-Tiếng_Việt-green?style=logo&logo=google-translate&logoColor=white)](./README_VN.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=logo&logo=opensourceinitiative&logoColor=white)](./LICENSE)
 [![Version](https://img.shields.io/badge/Version-0.2.1-orange?style=logo&logo=github&logoColor=white)](./CHANGELOG.md)
+[![Build Status](https://github.com/hiepDeveloper/NoTeThing/actions/workflows/build.yml/badge.svg)](https://github.com/hiepDeveloper/NoTeThing/actions)
 [![Java](https://img.shields.io/badge/Java-21+-red?style=logo&logo=openjdk&logoColor=white)](https://openjdk.org/)
 
 A lightweight, modern, cross-platform Sticky Notes application built with JavaFX and AtlantaFX.

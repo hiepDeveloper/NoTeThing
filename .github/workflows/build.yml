@@ -109,6 +109,12 @@ jobs:
             zip -r "../../release-assets/$asset_name" .
             cd ../..
           done
+          # Tạo mã SHA-256 để kiểm tra tính toàn vẹn của file
+          cd release-assets
+          sha256sum *.zip > checksums.txt
+          echo "Mã xác thực SHA-256 đã được tạo:"
+          cat checksums.txt
+        shell: bash
 
       - name: Validate Release Version
         id: check_version
@@ -167,7 +173,7 @@ jobs:
         with:
           name: ${{ steps.extract_notes.outputs.release_title }}
           body_path: release_notes.md
-          files: release-assets/*.zip
+          files: release-assets/*
           generate_release_notes: false
           draft: false
           prerelease: ${{ steps.check_version.outputs.is_prerelease }}
