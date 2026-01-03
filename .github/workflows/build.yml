@@ -141,11 +141,22 @@ jobs:
         id: extract_notes
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
+          # Trích xuất nội dung changelog cho phiên bản này
           sed -n "/## \[$VERSION\]/,/## \[/p" CHANGELOG.md | sed '1d;$d' > release_notes.md
           
           if [ ! -s release_notes.md ]; then
             echo "::error::Lỗi: Nội dung Changelog cho phiên bản $VERSION đang bị trống!"
             exit 1
+          fi
+          
+          # Trích xuất mô tả ngắn từ dòng tiêu đề ## [x.x.x] - YYYY-MM-DD - Mô tả
+          HEADER=$(grep "## \[$VERSION\]" CHANGELOG.md | head -n 1)
+          TITLE_DESC=$(echo "$HEADER" | sed -E "s/## \[$VERSION\] - [0-9]{4}-[0-9]{2}-[0-9]{2}( - )?//")
+          
+          if [ -z "$TITLE_DESC" ]; then
+            echo "release_title=NoTeThing v$VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "release_title=NoTeThing v$VERSION - $TITLE_DESC" >> $GITHUB_OUTPUT
           fi
           
           echo "Nội dung trích xuất thành công."
@@ -154,6 +165,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
+          name: ${{ steps.extract_notes.outputs.release_title }}
           body_path: release_notes.md
           files: release-assets/*.zip
           generate_release_notes: false

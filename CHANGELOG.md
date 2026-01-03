@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.1] - 2026-01-01
+## [0.2.1] - 2026-01-01 - Fix UI & Linux support
 
 ### Fixed
 - **Theme Synchronization**: Resolved an issue where theme changes from the Note List weren't applied to note windows until opacity was manually adjusted.
@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Adjusted minimum window width to 220px for better flexibility.
     - Improved resize grabbing sensitivity and native event handling stability.
 
-## [0.2.0] - 2025-12-31
+## [0.2.0] - 2025-12-31 - Update custom UI
 
 ### Added
 - **Dark Mode Support**: Full system-wide theme switching with persistent settings and real-time updates across all windows.
@@ -32,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Enhanced Note List**: Wider layout (400px) and improved font rendering for better readability.
 - **Responsive Interactivity**: Smart action buttons and improved slider UX with expanded hit areas and visual feedback.
 
-## [0.1.0] - 2025-12-30
+## [0.1.0] - 2025-12-30 - Initial Release
 
 ### Added
 - **Core Engine**: Initial release of NoTeThing sticky notes application.

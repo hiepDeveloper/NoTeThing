@@ -8,7 +8,7 @@ Tất cả các thay đổi đáng chú ý của dự án này sẽ được ghi
 Định dạng dựa trên [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 và dự án này tuân thủ [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.1] - 2026-01-01
+## [0.2.1] - 2026-01-01 - Bản dựng Portable & Hỗ trợ Linux
 
 ### Đã sửa lỗi
 - **Đồng bộ hóa Chủ đề**: Khắc phục lỗi thay đổi theme từ Danh sách ghi chú không áp dụng ngay cho các ghi chú hiện có (trước đây yêu cầu phải chỉnh độ trong suốt mới cập nhật).
