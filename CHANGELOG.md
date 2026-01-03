@@ -23,11 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - **Visual Control**: Toggles for **Acrylic (Glass)** effect and **Auto-hide Title** (both Enabled by default).
 - **Enhanced Typography**: Integrated **Mali** font family with full support for **Bold**, *Italic*, and ***BoldItalic*** styles.
 
-### Changed
-- **Editor Stability**: Reverted the core text editor to a native `TextArea` to ensure 100% stability and eliminate rendering artifacts.
-- **Performance**: Optimized data structures for handling active vs. deleted notes.
-- **UI Enhancements**: Added clear placeholder text ("Viết ghi chú...") and improved empty state visibility.
-
 ## [0.2.1] - 2026-01-01 - Fix UI & Linux support
 
 ### Fixed
