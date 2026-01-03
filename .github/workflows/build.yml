@@ -49,6 +49,7 @@ jobs:
     - name: Package Windows (App Folder)
       if: matrix.os == 'windows-latest'
       run: |
+        cp notething/src/main/resources/org/images/icon.ico .
         jpackage --name "NoTeThing" `
                  --vendor "hiepDeveloper" `
                  --app-version "${{ steps.get_version.outputs.version }}" `
@@ -57,7 +58,7 @@ jobs:
                  --main-class org.Launcher `
                  --type app-image `
                  --dest dist `
-                 --icon notething/src/main/resources/org/images/icon.ico
+                 --icon icon.ico
       shell: pwsh
 
     - name: Package Linux (App Folder)
@@ -65,6 +66,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y binutils fakeroot
+        cp notething/src/main/resources/org/images/icon.png .
         jpackage --name "NoTeThing" \
                  --vendor "hiepDeveloper" \
                  --app-version "${{ steps.get_version.outputs.version }}" \
@@ -73,7 +75,7 @@ jobs:
                  --main-class org.Launcher \
                  --type app-image \
                  --dest dist \
-                 --icon notething/src/main/resources/org/images/icon.png
+                 --icon icon.png
 
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
