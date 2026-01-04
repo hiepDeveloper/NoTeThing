@@ -82,6 +82,8 @@ jobs:
                  --type app-image \
                  --dest dist \
                  --icon icon.png
+        # Copy Linux Blur effect scripts and guide to the package
+        cp -r BlurEffectForLinux dist/NoTeThing/
 
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4

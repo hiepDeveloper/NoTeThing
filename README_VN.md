@@ -27,6 +27,7 @@
 3. Giải nén và chạy trình khởi chạy:
    - **Windows**: Chạy file **`NoTeThing.exe`**.
    - **Linux**: Chạy file thực thi **`NoTeThing`** trong thư mục.
+   > **Lưu ý cho Linux**: Để bật hiệu ứng Kính mờ (Blur) đẹp mắt, hãy chạy script `setup_linux_blur.sh` hoặc xem hướng dẫn tại [LINUX_BLUR_GUIDE.md](./BlurEffectForLinux/LINUX_BLUR_GUIDE.md).
 
 
 ## Yêu cầu hệ thống

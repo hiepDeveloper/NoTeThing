@@ -27,6 +27,7 @@ For a quick experience without installing Java, you can use the Portable version
 3. Extract the zip and run the launcher:
    - **Windows**: Run **`NoTeThing.exe`**.
    - **Linux**: Run the **`NoTeThing`** executable inside the folder.
+   > **Note for Linux Users**: To enable the beautiful Blur/Glass effect, run the `setup_linux_blur_en.sh` script or read [LINUX_BLUR_GUIDE_EN.md](./BlurEffectForLinux/LINUX_BLUR_GUIDE_EN.md).
 
 
 ## Prerequisites
