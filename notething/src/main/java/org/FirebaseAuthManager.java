@@ -163,6 +163,10 @@ public class FirebaseAuthManager {
         return email;
     }
 
+    public String getIdToken() {
+        return idToken;
+    }
+
     public void logout() {
         this.idToken = null;
         this.localId = null;

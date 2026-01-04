@@ -52,12 +52,7 @@
             <artifactId>ikonli-bootstrapicons-pack</artifactId>
             <version>12.3.1</version>
         </dependency>
-        <!-- Firebase Admin SDK -->
-        <dependency>
-            <groupId>com.google.firebase</groupId>
-            <artifactId>firebase-admin</artifactId>
-            <version>9.2.0</version>
-        </dependency>
+
         <!-- Jackson for JSON handling -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

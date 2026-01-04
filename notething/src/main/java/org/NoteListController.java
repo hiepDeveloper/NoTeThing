@@ -8,7 +8,6 @@ package org;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import atlantafx.base.controls.ToggleSwitch;
-import io.github.cdimascio.dotenv.Dotenv;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListCell;
@@ -95,19 +94,8 @@ public class NoteListController {
                     handleLoginAction();
                     return;
                 }
-                if (!FirebaseManager.getInstance().isInitialized()) {
-                    Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
-                    String saPath = dotenv.get("FIREBASE_SERVICE_ACCOUNT", "serviceAccountKey.json");
-                    boolean ok = FirebaseManager.getInstance().initialize(saPath);
-                    if (!ok) {
-                        syncToggle.setSelected(false);
-                        System.err.println("Vui lòng cấu hình file khóa dịch vụ tại: " + saPath);
-                    } else {
-                        App.syncDownFromCloud();
-                    }
-                } else {
-                    App.syncDownFromCloud();
-                }
+                // Với REST API, không cần khởi tạo Service Account
+                App.syncDownFromCloud();
             }
         });
 
