@@ -8,6 +8,14 @@ Tất cả các thay đổi đáng chú ý của dự án này sẽ được ghi
 Định dạng dựa trên [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 và dự án này tuân thủ [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-01-04 - Vá lỗi & Tối ưu hóa Linux
+
+### Đã sửa lỗi
+- **Bản dựng build (Artifact)**: Khắc phục lỗi bản build đóng gói không sử dụng được tính năng đồng bộ đám mây do thiếu cấu hình tài nguyên.
+- **Tương thích Linux**:
+    - **Tự động ẩn cài đặt**: Ẩn nút gạt hiệu ứng kính mờ trong phần cài đặt khi chạy trên Linux (vì hiệu ứng này do hệ điều hành/compositor quản lý).
+    - **Hướng dẫn chi tiết**: Bổ sung bộ tài liệu hướng dẫn và script tự động cấu hình Blur cho Hyprland, KDE, GNOME và Picom (X11).
+
 ## [0.3.0] - 2026-01-03 - Đồng bộ Đám mây, Thùng rác & Cài đặt
 
 ### Đã thêm

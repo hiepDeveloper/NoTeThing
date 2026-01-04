@@ -8,6 +8,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-01-04 - Hotfix & Linux Optimization
+
+### Fixed
+- **Cloud Sync Build**: Resolved an issue where the distributed build (artifact) failed to initialize cloud synchronization due to missing resource configurations.
+- **Linux Compatibility**:
+    - **Adaptive UI**: Automatically hide the "Acrylic/Blur" toggle in Settings when running on Linux (as this is managed by the OS compositor).
+    - **Detailed Documentation**: Added comprehensive guides and automatic setup scripts for enabling Blur on Hyprland, KDE, GNOME, and Picom (X11).
+
 ## [0.3.0] - 2026-01-03 - Cloud Sync, Trash Bin & Settings
 
 ### Added
