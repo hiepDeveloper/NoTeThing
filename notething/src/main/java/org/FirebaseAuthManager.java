@@ -23,12 +23,28 @@ public class FirebaseAuthManager {
     private static final String API_KEY;
     
     static {
-        // Load .env từ thư mục hiện tại của project
-        Dotenv dotenv = Dotenv.configure()
-                .directory("./") 
-                .ignoreIfMissing()
-                .load();
-        API_KEY = dotenv.get("FIREBASE_API_KEY", "YOUR_API_KEY_HERE");
+        // Ưu tiên load từ file config.properties trong resources (được đóng gói trong JAR)
+        String apiKey = null;
+        try (java.io.InputStream input = FirebaseAuthManager.class.getResourceAsStream("/org/config.properties")) {
+            if (input != null) {
+                java.util.Properties prop = new java.util.Properties();
+                prop.load(input);
+                apiKey = prop.getProperty("firebase_api_key");
+            }
+        } catch (IOException ex) {
+            System.err.println("Không thể load config.properties: " + ex.getMessage());
+        }
+
+        // Nếu không có trong resources (môi trường dev), thử load từ .env
+        if (apiKey == null || apiKey.isEmpty()) {
+            Dotenv dotenv = Dotenv.configure()
+                    .directory("./")
+                    .ignoreIfMissing()
+                    .load();
+            apiKey = dotenv.get("FIREBASE_API_KEY", "YOUR_API_KEY_HERE");
+        }
+        
+        API_KEY = apiKey;
     }
     private static final String DATA_DIR = System.getProperty("user.home") + File.separator + ".notething";
     private static final String AUTH_FILE = DATA_DIR + File.separator + "auth.json";

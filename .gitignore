@@ -28,3 +28,4 @@ plan/
 # Security
 .env
 serviceAccountKey.json
+notething/src/main/resources/org/config.properties

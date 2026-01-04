@@ -28,6 +28,12 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
+
+    - name: Create Config Properties
+      run: |
+        echo "firebase_api_key=${{ secrets.FIREBASE_API_KEY }}" > notething/src/main/resources/org/config.properties
+      shell: bash
+
     - name: Build Fat JAR with Maven
       run: mvn -B clean package -DskipTests --no-transfer-progress
       working-directory: notething
