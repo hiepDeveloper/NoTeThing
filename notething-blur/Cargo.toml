@@ -1,0 +1,10 @@
+[package]
+name = "notething_blur"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+x11 = "2.21.0"

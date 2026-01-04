@@ -34,6 +34,18 @@ jobs:
         echo "firebase_api_key=${{ secrets.FIREBASE_API_KEY }}" > notething/src/main/resources/org/config.properties
       shell: bash
 
+    - name: Build Rust Native Library (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libx11-dev pkg-config
+        cd notething-blur
+        cargo build --release
+        # Tạo thư mục resources nếu chưa có và copy file .so vào đúng vị trí cho JNA
+        mkdir -p ../notething/src/main/resources/linux-x86-64/
+        cp target/release/libnotething_blur.so ../notething/src/main/resources/linux-x86-64/libnotething_blur.so
+      shell: bash
+
     - name: Build Fat JAR with Maven
       run: mvn -B clean package -DskipTests --no-transfer-progress
       working-directory: notething
@@ -70,9 +82,15 @@ jobs:
     - name: Package Linux (App Folder)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        sudo apt-get update
+        # Đã cài binutils fakeroot ở bước Rust nếu cần, nhưng jpackage cần chúng
         sudo apt-get install -y binutils fakeroot
         cp notething/src/main/resources/org/images/icon.png .
+        # Copy các script hỗ trợ vào thư mục đóng gói để người dùng dễ thấy
+        cp doc/BlurEffectForLinux/setup_linux_blur.sh dist/NoTeThing/ || true
+        cp doc/BlurEffectForLinux/setup_linux_blur_en.sh dist/NoTeThing/ || true
+        cp doc/BlurEffectForLinux/README_LINUX_VN.md dist/NoTeThing/ || true
+        cp doc/BlurEffectForLinux/README_LINUX.md dist/NoTeThing/ || true
+        
         jpackage --name "NoTeThing" \
                  --vendor "hiepDeveloper" \
                  --app-version "${{ steps.get_version.outputs.version }}" \

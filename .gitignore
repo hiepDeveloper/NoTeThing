@@ -21,6 +21,7 @@ Thumbs.db
 # Temporary files
 *.log
 *.tmp
+Cargo.lock
 
 # Project plan
 plan/

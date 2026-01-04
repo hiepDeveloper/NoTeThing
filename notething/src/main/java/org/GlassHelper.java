@@ -1,5 +1,7 @@
 package org;
 
+import java.lang.reflect.Method;
+
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
@@ -12,13 +14,66 @@ import javafx.stage.Stage;
 
 public class GlassHelper {
 
+    // ================= LINUX NATIVE INTERFACE =================
+    public interface LinuxBlurLib extends com.sun.jna.Library {
+        // Tên thư viện là "notething_blur" (tương ứng file libnotething_blur.so)
+        LinuxBlurLib INSTANCE = com.sun.jna.Native.load("notething_blur", LinuxBlurLib.class);
+        int enable_blur_x11(long windowId);
+    }
+
     public static void applyBlur(Stage stage, boolean enable) {
         String os = System.getProperty("os.name").toLowerCase();
         if (os.contains("win")) {
             applyWindowsBlur(stage, enable);
+        } else if (os.contains("linux")) {
+            if (enable) {
+                applyLinuxBlur(stage);
+            }
         }
-        // Trên Linux/Mac, JavaFX tự handle Transparent Stage.
-        // Hiệu ứng Blur sẽ do OS Compositor đảm nhận.
+    }
+
+    private static void applyLinuxBlur(Stage stage) {
+        javafx.application.Platform.runLater(() -> {
+            try {
+                long xid = getLinuxWindowId(stage);
+                if (xid != 0) {
+                    int result = LinuxBlurLib.INSTANCE.enable_blur_x11(xid);
+                    if (result == 0) {
+                        System.out.println("✓ Linux blur enabled for XID: " + xid);
+                    } else {
+                        System.err.println("✗ Failed to enable Linux blur, result: " + result);
+                    }
+                }
+            } catch (Throwable e) {
+                // Thường xảy ra nếu không tìm thấy file .so hoặc không phải môi trường X11
+                System.err.println("⚠ Không thể áp dụng blur Linux: " + e.getMessage());
+            }
+        });
+    }
+
+    /**
+     * Dùng Reflection để "móc" XID (Native Window ID) từ nội bộ JavaFX trên Linux.
+     */
+    private static long getLinuxWindowId(Stage stage) {
+        try {
+            // Stage -> Window -> Peer (TKStage)
+            Method getPeer = javafx.stage.Window.class.getDeclaredMethod("getPeer");
+            getPeer.setAccessible(true);
+            Object peer = getPeer.invoke(stage);
+
+            if (peer != null) {
+                // Trên Linux, Peer thường là com.sun.glass.ui.gtk.GtkWindow
+                Method getNativeWindow = peer.getClass().getMethod("getNativeWindow");
+                getNativeWindow.setAccessible(true);
+                Object result = getNativeWindow.invoke(peer);
+                if (result instanceof Long) {
+                    return (Long) result;
+                }
+            }
+        } catch (Exception e) {
+            // e.printStackTrace();
+        }
+        return 0;
     }
 
     /**
@@ -122,14 +177,6 @@ public class GlassHelper {
             User32Wrapper.INSTANCE.SetWindowRgn(hwnd, rgn, true);
         } catch (Exception e) {}
     }
-
-    // ================= LINUX IMPLEMENTATION =================
-    
-    // Trên Linux (Wayland/X11), chúng ta tuân thủ "Native Compositor Rule".
-    // Ứng dụng chỉ cần render background trong suốt (StageStyle.TRANSPARENT và CSS rgba).
-    // Việc Blur sẽ do Compositor (KWin, Hyprland, Picom...) đảm nhận thông qua Window Rules
-    // cấu hình bởi người dùng (dựa trên Window Class/Title).
-    // Không can thiệp sâu bằng JNA để đảm bảo độ ổn định và tương thích.
 
     private interface Dwmapi extends StdCallLibrary {
         Dwmapi INSTANCE = Native.load("dwmapi", Dwmapi.class, W32APIOptions.DEFAULT_OPTIONS);

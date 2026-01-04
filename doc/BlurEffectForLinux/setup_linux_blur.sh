@@ -10,7 +10,8 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}=== Cấu hình Hiệu ứng Kính mờ (Blur) cho NoTeThing ===${NC}"
-echo "Ứng dụng này hỗ trợ nền trong suốt. Hiệu ứng làm mờ nền được quản lý bởi Window Manager của bạn."
+echo "NoTeThing hiện đã tích hợp thư viện Native để tự động kích hoạt Blur."
+echo "Bạn chỉ cần đảm bảo hệ thống đang chạy một Compositor (KWin, Picom, Hyprland...)."
 
 # Phát hiện môi trường Desktop
 XDG_CURRENT_DESKTOP=${XDG_CURRENT_DESKTOP:-"unknown"}
@@ -18,27 +19,24 @@ echo -e "Môi trường hiện tại: ${GREEN}$XDG_CURRENT_DESKTOP${NC}"
 
 if [[ "$XDG_CURRENT_DESKTOP" == *"KDE"* ]]; then
     echo "Phát hiện KDE Plasma."
-    echo "Để bật Blur trên KDE, bạn cần tạo một Window Rule."
-    echo "1. Vào System Settings -> Window Management -> Window Rules."
-    echo "2. Tạo Rule mới cho Window Class: '$APP_CLASS'."
-    echo "3. Tab Appearance & Fixes -> Tích 'Blur background' -> Chọn 'Force'."
-    echo "   Hoặc chạy lệnh kwriteconfig5 (nếu có thể script hóa, nhưng KDE thường yêu cầu GUI)."
+    echo -e "${GREEN}✓ Thư viện Native sẽ tự động yêu cầu KWin thực hiện Blur.${NC}"
+    echo "Nếu không thấy hiệu ứng, hãy đảm bảo rằng 'Blur' đã được bật trong:"
+    echo "System Settings -> Desktop Effects -> Blur (Tích chọn)."
     
 elif [[ "$XDG_CURRENT_DESKTOP" == *"Hyprland"* ]]; then
     echo "Phát hiện Hyprland."
     CONFIG_FILE="$HOME/.config/hypr/hyprland.conf"
     if [ -f "$CONFIG_FILE" ]; then
-        if grep -q "NoTeThing" "$CONFIG_FILE"; then
-            echo -e "${GREEN}Đã tìm thấy cấu hình cho NoTeThing trong hyprland.conf.${NC}"
+        if grep -q "windowrulev2 = blur" "$CONFIG_FILE" && grep -q "$APP_CLASS" "$CONFIG_FILE"; then
+            echo -e "${GREEN}✓ Đã tìm thấy cấu hình Blur cho NoTeThing trong hyprland.conf.${NC}"
         else
+            echo "Hyprland yêu cầu một rule nhỏ để kích hoạt blur cho app native."
             echo "Đang thêm rule vào $CONFIG_FILE..."
             echo "" >> "$CONFIG_FILE"
             echo "# NoTeThing Blur Rules" >> "$CONFIG_FILE"
-            echo "windowrule = opacity 0.85 0.85, ^($APP_CLASS)$" >> "$CONFIG_FILE"
-            echo "windowrulev2 = float, class:^($APP_CLASS)$" >> "$CONFIG_FILE"
             echo "windowrulev2 = blur, class:^($APP_CLASS)$" >> "$CONFIG_FILE"
             echo "windowrulev2 = ignorezero, class:^($APP_CLASS)$" >> "$CONFIG_FILE"
-            echo -e "${GREEN}Đã thêm xong! Vui lòng reload Hyprland (Super + M hoặc command).${NC}"
+            echo -e "${GREEN}✓ Đã thêm xong! Hyprland sẽ tự động reload.${NC}"
         fi
     else
         echo -e "${RED}Không tìm thấy file cấu hình Hyprland tại $CONFIG_FILE${NC}"
@@ -52,24 +50,28 @@ elif [[ "$XDG_CURRENT_DESKTOP" == *"GNOME"* ]]; then
     echo "2. Mở cài đặt Extension -> Tab Applications -> Thêm '$APP_CLASS' vào whitelist."
 
 else
-    # Kiểm tra Picom cho X11 (Xfce, i3, bspwm...)
-    if pgrep -x "picom" > /dev/null; then
-        echo "Phát hiện Picom đang chạy."
-        PICOM_CONF="$HOME/.config/picom/picom.conf"
-        if [ ! -f "$PICOM_CONF" ]; then
-            PICOM_CONF="$HOME/.config/picom.conf"
-        fi
-        
-        if [ -f "$PICOM_CONF" ]; then
-            echo "Vui lòng thêm dòng sau vào phần 'opacity-rule' trong $PICOM_CONF:"
-            echo -e "${GREEN}\"90:class_g = '$APP_CLASS'\"${NC}"
-            echo "Và đảm bảo 'blur-background' đã được bật với method 'dual_kawase'."
+    # Kiểm tra Picom cho X11 (Xfce, i3, bspwm, LXQt...)
+    if command -v picom >/dev/null 2>&1; then
+        echo -e "${GREEN}✓ Phát hiện Picom đã được cài đặt.${NC}"
+        if ! pgrep -x "picom" > /dev/null; then
+            echo "Picom đang KHÔNG chạy. Đang thử khởi động Picom..."
+            picom --backend glx --blur-method dual_kawase --blur-strength 5 &
+            echo -e "${GREEN}✓ Đã khởi động Picom với cấu hình Blur.${NC}"
         else
-            echo "Không tìm thấy file cấu hình Picom. Vui lòng kiểm tra tài liệu distro của bạn."
+            echo -e "${GREEN}✓ Picom đang chạy.${NC}"
         fi
+        echo "Lưu ý: Bạn nên cấu hình Picom tự động khởi động cùng hệ thống."
     else
-        echo -e "${RED}Không phát hiện Compositor hỗ trợ Blur nào (như Picom, Hyprland, KWin).${NC}"
-        echo "Bạn cần cài đặt và chạy một Compositor (ví dụ: picom) để có hiệu ứng trong suốt/mờ."
+        echo -e "${RED}⚠ Không tìm thấy Picom (Compositor cho X11).${NC}"
+        read -p "Bạn có muốn cài đặt Picom tự động không? (y/n) " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo "Đang cài đặt picom..."
+            sudo apt update && sudo apt install -y picom
+            echo -e "${GREEN}✓ Đã cài đặt Picom. Vui lòng chạy lại script này hoặc khởi động lại ứng dụng.${NC}"
+        else
+            echo "Vui lòng cài đặt Picom hoặc một Compositor hỗ trợ Blur bằng tay để sử dụng tính năng này."
+        fi
     fi
 fi
 
