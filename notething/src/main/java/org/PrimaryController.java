@@ -89,13 +89,9 @@ public class PrimaryController {
         });
         
         // Theo dõi thay đổi text để lưu vào note
-        // Sử dụng một cơ chế debounce đơn giản thủ công hoặc bind
         editor.textProperty().addListener((obs, oldVal, newVal) -> {
             if (!isUpdatingFromModel && note != null) {
                 note.setContent(newVal);
-                // Vì TextArea không có thư viện ReactFX tích hợp sẵn như RichTextFX,
-                // ta sẽ gọi saveNotes() ngay hoặc có thể tự implement debounce nếu muốn.
-                // Ở đây gọi luôn cho đơn giản, NoteManager có thể tự lo việc ghi đĩa hiệu quả nếu cần.
                 NoteManager.getInstance().saveNotes();
             }
         });
@@ -247,9 +243,6 @@ public class PrimaryController {
 
     public void refreshFontSize() {
         if (editor != null) {
-            // TextArea cần style font-size trực tiếp
-            String currentStyle = editor.getStyle();
-            // Xóa font-size cũ nếu có (để đơn giản ta set lại toàn bộ style quan trọng)
              editor.setStyle("-fx-background-color: transparent; -fx-control-inner-background: transparent; -fx-background-insets: 0; -fx-text-fill: -note-text-color; -fx-font-family: 'Mali'; -fx-font-size: " + App.getFontSize() + "px;");
         }
     }
@@ -322,21 +315,18 @@ public class PrimaryController {
         
         javafx.scene.Node source = (javafx.scene.Node) alwaysOnTopButton.getParent().getChildrenUnmodifiable().get(1);
         Bounds bounds = source.localToScreen(source.getBoundsInLocal());
-        popup.show(rootPane.getScene().getWindow(), bounds.getMinX(), bounds.getMaxY() + 5);
         
         // Sửa lỗi góc trắng thừa của Popup
-        // Sử dụng runLater để đảm bảo Scene và Window đã được khởi tạo hoàn toàn
-        Platform.runLater(() -> {
+        popup.setOnShowing(e -> {
             if (popup.getScene() != null) {
-                // Đặt nền Scene thành trong suốt
                 popup.getScene().setFill(javafx.scene.paint.Color.TRANSPARENT);
-                
-                // Đảm bảo node gốc của Scene cũng trong suốt (đề phòng)
                 if (popup.getScene().getRoot() != null) {
-                     popup.getScene().getRoot().setStyle("-fx-background-color: transparent;");
+                    popup.getScene().getRoot().setStyle("-fx-background-color: transparent;");
                 }
             }
         });
+
+        popup.show(rootPane.getScene().getWindow(), bounds.getMinX(), bounds.getMaxY() + 5);
     }
     
     private void applyColor(String colorClass) {

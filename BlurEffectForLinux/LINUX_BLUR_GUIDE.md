@@ -45,4 +45,8 @@ blur: {
 opacity-rule = [
   "85:class_g = 'NoTeThing'"
 ];
+shadow-exclude = [
+  "class_g = 'NoTeThing' && window_type = 'popup_menu'",
+  "class_g = 'NoTeThing' && window_type = 'tooltip'"
+];
 ```

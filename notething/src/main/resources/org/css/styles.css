@@ -44,8 +44,8 @@
 
 /* ===== BASE STYLES ===== */
 .root {
-    /* Mặc định cho Scene */
-    -fx-background-color: -note-bg-color;
+    /* Quan trọng: Để nền Scene là trong suốt, tránh khối màu trắng/đen che khuất Blur trên Linux */
+    -fx-background-color: transparent;
 }
 
 .sticky-note-root {
