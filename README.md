@@ -3,7 +3,7 @@
 [![English](https://img.shields.io/badge/Language-English-blue?style=logo&logo=google-translate&logoColor=white)](#)
 [![Tiếng Việt](https://img.shields.io/badge/Ngôn_Ngữ-Tiếng_Việt-green?style=logo&logo=google-translate&logoColor=white)](./README_VN.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=logo&logo=opensourceinitiative&logoColor=white)](./LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.3.1-orange?style=logo&logo=github&logoColor=white)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-0.3.2-orange?style=logo&logo=github&logoColor=white)](./CHANGELOG.md)
 [![Build Status](https://github.com/hiepDeveloper/NoTeThing/actions/workflows/build.yml/badge.svg)](https://github.com/hiepDeveloper/NoTeThing/actions)
 [![Java](https://img.shields.io/badge/Java-21+-red?style=logo&logo=openjdk&logoColor=white)](https://openjdk.org/)
 
@@ -26,8 +26,8 @@ For a quick experience without installing Java, you can use the Portable version
 2. Download the Portable zip file corresponding to your operating system (**Windows** or **Linux**).
 3. Extract the zip and run the launcher:
    - **Windows**: Run **`NoTeThing.exe`**.
-   - **Linux**: Run the **`NoTeThing`** executable inside the folder.
-   > **Note for Linux Users**: To enable the automated Blur/Glass effect, run the `setup_linux_blur_en.sh` script or read [README_LINUX.md](./doc/BlurEffectForLinux/README_LINUX.md).
+    - **Linux**: Run the **`NoTeThing`** executable inside the folder.
+   > **Note for Linux Users**: The Blur/Glass effect is now natively supported via a system library and can be toggled directly in Settings.
 
 
 ## Prerequisites

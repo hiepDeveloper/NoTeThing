@@ -77,11 +77,11 @@ public class NoteListController {
         autoHideTitleToggle.setSelected(App.isAutoHideTitleEnabled());
         syncToggle.setSelected(App.isCloudSyncEnabled());
         
-        // Ẩn cài đặt hiệu ứng Acrylic trên Linux vì OS đã tự quản lý qua Compositor
+        // Hiện cài đặt hiệu ứng Blur trên Linux vì mã nguồn hiện tại đã hỗ trợ thông qua Rust
         if (System.getProperty("os.name").toLowerCase().contains("linux")) {
             if (acrylicSettingBox != null) {
-                acrylicSettingBox.setVisible(false);
-                acrylicSettingBox.setManaged(false);
+                // Đổi nhãn cho phù hợp với Linux nếu cần (Acrylic là từ của Windows)
+                acrylicToggle.setText("Bật Blur (Linux)");
             }
         }
         

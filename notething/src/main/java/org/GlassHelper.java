@@ -18,7 +18,7 @@ public class GlassHelper {
     public interface LinuxBlurLib extends com.sun.jna.Library {
         // Tên thư viện là "notething_blur" (tương ứng file libnotething_blur.so)
         LinuxBlurLib INSTANCE = com.sun.jna.Native.load("notething_blur", LinuxBlurLib.class);
-        int enable_blur_x11(long windowId);
+        int set_blur_x11(long windowId, int enable);
     }
 
     public static void applyBlur(Stage stage, boolean enable) {
@@ -26,27 +26,31 @@ public class GlassHelper {
         if (os.contains("win")) {
             applyWindowsBlur(stage, enable);
         } else if (os.contains("linux")) {
-            if (enable) {
-                applyLinuxBlur(stage);
-            }
+            applyLinuxBlur(stage, enable);
         }
     }
 
-    private static void applyLinuxBlur(Stage stage) {
+    private static void applyLinuxBlur(Stage stage, boolean enable) {
         javafx.application.Platform.runLater(() -> {
             try {
                 long xid = getLinuxWindowId(stage);
                 if (xid != 0) {
-                    int result = LinuxBlurLib.INSTANCE.enable_blur_x11(xid);
+                    int result = LinuxBlurLib.INSTANCE.set_blur_x11(xid, enable ? 1 : 0);
                     if (result == 0) {
-                        System.out.println("✓ Linux blur enabled for XID: " + xid);
+                        System.out.println("✓ Linux blur " + (enable ? "enabled" : "disabled") + " for XID: " + xid);
                     } else {
-                        System.err.println("✗ Failed to enable Linux blur, result: " + result);
+                        System.err.println("✗ Failed to set Linux blur, result: " + result);
+                    }
+                } else {
+                    // Nếu là Linux và stage đang hiện mà XID vẫn = 0, thử lại sau 100ms
+                    if (stage.isShowing()) {
+                        javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.millis(150));
+                        pause.setOnFinished(e -> applyLinuxBlur(stage, enable));
+                        pause.play();
                     }
                 }
             } catch (Throwable e) {
-                // Thường xảy ra nếu không tìm thấy file .so hoặc không phải môi trường X11
-                System.err.println("⚠ Không thể áp dụng blur Linux: " + e.getMessage());
+                System.err.println("⚠ Lỗi xử lý blur Linux: " + e.getMessage());
             }
         });
     }
@@ -56,22 +60,20 @@ public class GlassHelper {
      */
     private static long getLinuxWindowId(Stage stage) {
         try {
-            // Stage -> Window -> Peer (TKStage)
             Method getPeer = javafx.stage.Window.class.getDeclaredMethod("getPeer");
             getPeer.setAccessible(true);
             Object peer = getPeer.invoke(stage);
 
             if (peer != null) {
-                // Trên Linux, Peer thường là com.sun.glass.ui.gtk.GtkWindow
                 Method getNativeWindow = peer.getClass().getMethod("getNativeWindow");
                 getNativeWindow.setAccessible(true);
                 Object result = getNativeWindow.invoke(peer);
-                if (result instanceof Long) {
-                    return (Long) result;
+                if (result instanceof Long xid) {
+                    return xid;
                 }
             }
-        } catch (Exception e) {
-            // e.printStackTrace();
+        } catch (ReflectiveOperationException | SecurityException e) {
+            // Log nhẹ nhàng hoặc bỏ qua
         }
         return 0;
     }

@@ -8,6 +8,18 @@ Tất cả các thay đổi đáng chú ý của dự án này sẽ được ghi
 Định dạng dựa trên [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 và dự án này tuân thủ [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2026-01-05 - Blur Native trên Linux & Tối ưu hóa
+
+### Đã thêm
+- **Blur Native trên Linux**: Thay thế cơ chế script bằng thư viện hệ thống (Rust) để điều khiển hiệu ứng kính mờ.
+    - **Nút gạt bật/tắt**: Giờ đây người dùng Linux có thể bật hoặc tắt hiệu ứng Blur ngay trong phần Cài đặt mà không cần khởi động lại.
+    - **Hỗ trợ đa môi trường**: Tự động nhận diện và áp dụng Blur cho KDE (KWin), Picom (X11) và cả GNOME (Mutter).
+    - **Cơ chế Retry thông minh**: Tự động thử lại nếu hệ thống chưa kịp cấp ID cửa sổ (XID), đảm bảo hiệu ứng luôn xuất hiện.
+- **Tùy biến độ mờ**: Tận dụng thanh Opacity để điều chỉnh "độ sâu" của hiệu ứng kính mờ trên Linux.
+
+### Đã thay đổi
+- **Mở khóa Cài đặt**: Cho phép hiển thị các tùy chọn hiệu ứng thị giác trên Linux thay vì ẩn đi như bản trước.
+
 ## [0.3.1] - 2026-01-04 - Vá lỗi & Tối ưu hóa Linux
 
 ### Đã sửa lỗi

@@ -3,7 +3,7 @@
 [![Tiếng Việt](https://img.shields.io/badge/Ngôn_Ngữ-Tiếng_Việt-green?style=logo&logo=google-translate&logoColor=white)](#)
 [![English](https://img.shields.io/badge/Language-English-blue?style=logo&logo=google-translate&logoColor=white)](./README.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=logo&logo=opensourceinitiative&logoColor=white)](./LICENSE)
-[![Phiên bản](https://img.shields.io/badge/Phiên_bản-0.3.1-orange?style=logo&logo=github&logoColor=white)](./CHANGELOG_VN.md)
+[![Phiên bản](https://img.shields.io/badge/Phiên_bản-0.3.2-orange?style=logo&logo=github&logoColor=white)](./CHANGELOG_VN.md)
 [![Build Status](https://github.com/hiepDeveloper/NoTeThing/actions/workflows/build.yml/badge.svg)](https://github.com/hiepDeveloper/NoTeThing/actions)
 [![Java](https://img.shields.io/badge/Java-21+-red?style=logo&logo=openjdk&logoColor=white)](https://openjdk.org/)
 
@@ -26,8 +26,8 @@
 2. Tải về bản Portable (file .zip) tương ứng với hệ điều hành của bạn (**Windows** hoặc **Linux**).
 3. Giải nén và chạy trình khởi chạy:
    - **Windows**: Chạy file **`NoTeThing.exe`**.
-   - **Linux**: Chạy file thực thi **`NoTeThing`** trong thư mục.
-   > **Lưu ý cho Linux**: Để bật hiệu ứng Kính mờ (Blur) tự động, hãy chạy script `setup_linux_blur.sh` hoặc xem hướng dẫn tại [README_LINUX_VN.md](./doc/BlurEffectForLinux/README_LINUX_VN.md).
+    - **Linux**: Chạy file thực thi **`NoTeThing`** trong thư mục.
+   > **Lưu ý cho Linux**: Hiệu ứng Kính mờ (Blur) hiện đã được hỗ trợ native qua thư viện hệ thống và có thể bật/tắt trực tiếp trong phần Cài đặt.
 
 
 ## Yêu cầu hệ thống

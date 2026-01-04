@@ -8,6 +8,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2026-01-05 - Native Linux Blur & Optimization
+
+### Added
+- **Native Linux Blur Control**: Mirrored system-level control via a Rust library, replacing the previous script-based approach.
+    - **Functional Toggle**: Linux users can now enable/disable blur effects directly in Settings without restarts.
+    - **Wide Compatibility**: Automated detection and support for KDE (KWin), Picom (X11), and GNOME (Mutter).
+    - **Intelligent Retry Logic**: Smoothly handles window initialization delays (XID retrieval) to ensure blur is applied reliably.
+- **Dynamic Blur Customization**: Leverage the Opacity slider to adjust the depth and "thickness" of the glass effect on Linux.
+
+### Changed
+- **Settings Visibility**: Unlocked visual effect settings for Linux users, providing full UI parity across platforms.
+
 ## [0.3.1] - 2026-01-04 - Hotfix & Linux Optimization
 
 ### Fixed

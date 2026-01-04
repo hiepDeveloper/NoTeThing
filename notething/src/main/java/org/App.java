@@ -260,13 +260,15 @@ public class App extends Application {
 
     public static void setGlassEnabled(boolean enabled) {
         isGlassEnabled = enabled;
-        // Chỉ cập nhật hiệu ứng cho các tờ ghi chú (vì chúng là Transparent Stage)
-        // Cửa sổ danh sách chính là Decorated Stage, không nên áp dụng hiệu ứng này để tránh lỗi UI
+        // Cập nhật hiệu ứng Blur Native
         for (Note note : NoteManager.getInstance().getAllNotes()) {
-            if (note.getStage() != null) {
+            if (note.getStage() != null && note.getStage().isShowing()) {
                 GlassHelper.applyBlur(note.getStage(), isGlassEnabled);
             }
         }
+        // Cập nhật giao diện (màu sắc/độ trong suốt) để phù hợp với trạng thái Blur
+        updateStylesheetsAcrossWindows();
+        
         NoteManager.getInstance().saveSettings(currentThemeMode.name(), isGlassEnabled, isAutoHideTitleEnabled, currentFontSize, isCloudSyncEnabled);
     }
 
