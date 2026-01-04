@@ -7,15 +7,26 @@ on:
       - 'v*'
   pull_request:
     branches: [ main, fix-v0.3.2 ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
-    name: Build on ${{ matrix.os }}
+    name: Build on ${{ matrix.platform }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        include:
+          - os: windows-latest
+            platform: Windows
+            icon: icon.ico
+          - os: ubuntu-latest
+            platform: Linux
+            icon: icon.png
 
     steps:
     - name: Checkout code
@@ -28,20 +39,34 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
+    - name: Install Linux Dependencies
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libx11-dev pkg-config binutils fakeroot
+      shell: bash
 
     - name: Create Config Properties
       run: |
+        mkdir -p notething/src/main/resources/org
         echo "firebase_api_key=${{ secrets.FIREBASE_API_KEY }}" > notething/src/main/resources/org/config.properties
       shell: bash
+
+    - name: Setup Rust (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Rust Cache (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      uses: Swatinem/rust-cache@v2
+      with:
+        workspaces: notething-blur
 
     - name: Build Rust Native Library (Linux)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        sudo apt-get update
-        sudo apt-get install -y libx11-dev pkg-config
         cd notething-blur
         cargo build --release
-        # Tạo thư mục resources nếu chưa có và copy file .so vào đúng vị trí cho JNA
         mkdir -p ../notething/src/main/resources/linux-x86-64/
         cp target/release/libnotething_blur.so ../notething/src/main/resources/linux-x86-64/libnotething_blur.so
       shell: bash
@@ -55,58 +80,47 @@ jobs:
       run: |
         VERSION=$(mvn -f notething/pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout)
         echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
       shell: bash
 
     - name: Prepare Package Folder
       run: |
         mkdir -p package-in
         cp notething/target/notething-*.jar package-in/
-        echo "jar_name=$(basename notething/target/notething-*.jar)" >> $GITHUB_ENV
+        JAR_NAME=$(basename package-in/notething-*.jar)
+        echo "jar_name=$JAR_NAME" >> $GITHUB_ENV
       shell: bash
 
-    - name: Package Windows (App Folder)
-      if: matrix.os == 'windows-latest'
+    - name: Package Application
       run: |
-        cp notething/src/main/resources/org/images/icon.ico .
-        jpackage --name "NoTeThing" `
-                 --vendor "hiepDeveloper" `
-                 --app-version "${{ steps.get_version.outputs.version }}" `
-                 --input package-in `
-                 --main-jar ${{ env.jar_name }} `
-                 --main-class org.Launcher `
-                 --type app-image `
-                 --dest dist `
-                 --icon icon.ico
-      shell: pwsh
-
-    - name: Package Linux (App Folder)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        # Đã cài binutils fakeroot ở bước Rust nếu cần, nhưng jpackage cần chúng
-        sudo apt-get install -y binutils fakeroot
-        cp notething/src/main/resources/org/images/icon.png .
+        cp notething/src/main/resources/org/images/${{ matrix.icon }} .
         jpackage --name "NoTeThing" \
                  --vendor "hiepDeveloper" \
-                 --app-version "${{ steps.get_version.outputs.version }}" \
+                 --app-version "${{ env.VERSION }}" \
                  --input package-in \
                  --main-jar ${{ env.jar_name }} \
                  --main-class org.Launcher \
                  --type app-image \
                  --dest dist \
-                 --icon icon.png
+                 --icon ${{ matrix.icon }}
+      shell: bash
 
-        # Copy các script hỗ trợ vào thư mục đóng gói SAU KHI jpackage tạo ra thư mục
+    - name: Post-Package Setup (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        # Copy các script hỗ trợ vào thư mục đóng gói
         cp doc/BlurEffectForLinux/setup_linux_blur.sh dist/NoTeThing/
         cp doc/BlurEffectForLinux/setup_linux_blur_en.sh dist/NoTeThing/
         cp doc/BlurEffectForLinux/README_LINUX_VN.md dist/NoTeThing/
         cp doc/BlurEffectForLinux/README_LINUX.md dist/NoTeThing/
         chmod +x dist/NoTeThing/setup_linux_blur.sh
         chmod +x dist/NoTeThing/setup_linux_blur_en.sh
+      shell: bash
 
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: NoTeThing-v${{ steps.get_version.outputs.version }}-${{ matrix.os == 'windows-latest' && 'Windows' || 'Linux' }}-Portable
+        name: NoTeThing-v${{ env.VERSION }}-${{ matrix.platform }}-Portable
         path: dist/NoTeThing/
         if-no-files-found: error
 
@@ -127,79 +141,65 @@ jobs:
           path: artifacts
 
       - name: Prepare Release Assets
+        id: prepare_assets
         run: |
           mkdir release-assets
-          for dir in artifacts/*/; do
-            asset_name=$(basename "$dir").zip
-            cd "$dir"
-            zip -r "../../release-assets/$asset_name" .
-            cd ../..
+          cd artifacts
+          for dir in */; do
+            # Bỏ dấu / ở cuối tên thư mục
+            folder_name=${dir%/}
+            asset_name="${folder_name}.zip"
+            echo "Zipping $folder_name to $asset_name"
+            (cd "$dir" && zip -r "../../release-assets/$asset_name" .)
           done
-          # Tạo mã SHA-256 để kiểm tra tính toàn vẹn của file
-          cd release-assets
+          cd ../release-assets
           sha256sum *.zip > checksums.txt
-          echo "Mã xác thực SHA-256 đã được tạo:"
-          cat checksums.txt
         shell: bash
 
-      - name: Validate Release Version
-        id: check_version
-        run: |
-          # Đọc phiên bản từ dòng <version> ngay sau <artifactId>notething</artifactId>
-          POM_VERSION=$(grep -A 1 "<artifactId>notething</artifactId>" notething/pom.xml | grep "<version>" | sed -E 's/.*<version>(.*)<\/version>.*/\1/')
-          TAG_VERSION=${GITHUB_REF#refs/tags/v}
-          
-          echo "Phiên bản trong pom.xml: $POM_VERSION"
-          echo "Phiên bản từ Tag: $TAG_VERSION"
-          
-          if [ "$POM_VERSION" != "$TAG_VERSION" ]; then
-            echo "::error::Lỗi: Phiên bản trong pom.xml ($POM_VERSION) không khớp với Tag ($TAG_VERSION)!"
-            exit 1
-          fi
-
-          if ! grep -q "## \[$TAG_VERSION\]" CHANGELOG.md; then
-            echo "::error::Lỗi: Không tìm thấy mục ## [$TAG_VERSION] trong CHANGELOG.md!"
-            exit 1
-          fi
-
-          if [[ $TAG_VERSION == 0.* ]]; then
-            echo "is_prerelease=true" >> $GITHUB_OUTPUT
-          else
-            echo "is_prerelease=false" >> $GITHUB_OUTPUT
-          fi
-        shell: bash
-
-      - name: Extract Release Notes
-        id: extract_notes
+      - name: Validate and Extract Release Info
+        id: release_info
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
-          # Trích xuất nội dung changelog cho phiên bản này
-          sed -n "/## \[$VERSION\]/,/## \[/p" CHANGELOG.md | sed '1d;$d' > release_notes.md
+          POM_VERSION=$(mvn -f notething/pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout)
           
-          if [ ! -s release_notes.md ]; then
-            echo "::error::Lỗi: Nội dung Changelog cho phiên bản $VERSION đang bị trống!"
+          if [ "$POM_VERSION" != "$VERSION" ]; then
+            echo "::error::Version mismatch! POM: $POM_VERSION, Tag: $VERSION"
             exit 1
           fi
+
+          if ! grep -q "## \[$VERSION\]" CHANGELOG.md; then
+            echo "::error::Changelog entry for $VERSION not found!"
+            exit 1
+          fi
+
+          # Extract changelog section more robustly
+          sed -n "/## \[$VERSION\]/,/## \[/p" CHANGELOG.md | sed '1d;$d' > release_notes.md
           
-          # Trích xuất mô tả ngắn từ dòng tiêu đề ## [x.x.x] - YYYY-MM-DD - Mô tả
+          # Get title from changelog
           HEADER=$(grep "## \[$VERSION\]" CHANGELOG.md | head -n 1)
           TITLE_DESC=$(echo "$HEADER" | sed -E "s/## \[$VERSION\] - [0-9]{4}-[0-9]{2}-[0-9]{2}( - )?//")
           
           if [ -z "$TITLE_DESC" ]; then
-            echo "release_title=NoTeThing v$VERSION" >> $GITHUB_OUTPUT
+            echo "title=NoTeThing v$VERSION" >> $GITHUB_OUTPUT
           else
-            echo "release_title=NoTeThing v$VERSION - $TITLE_DESC" >> $GITHUB_OUTPUT
+            echo "title=NoTeThing v$VERSION - $TITLE_DESC" >> $GITHUB_OUTPUT
           fi
-          
-          echo "Nội dung trích xuất thành công."
+
+          # Determine prerelease status
+          if [[ $VERSION == 0.* ]]; then
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "prerelease=false" >> $GITHUB_OUTPUT
+          fi
         shell: bash
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          name: ${{ steps.extract_notes.outputs.release_title }}
+          name: ${{ steps.release_info.outputs.title }}
           body_path: release_notes.md
-          files: release-assets/*
+          files: |
+            release-assets/*.zip
+            release-assets/checksums.txt
           generate_release_notes: false
-          draft: false
-          prerelease: ${{ steps.check_version.outputs.is_prerelease }}
+          prerelease: ${{ steps.release_info.outputs.prerelease }}
