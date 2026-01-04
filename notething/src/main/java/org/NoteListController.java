@@ -47,6 +47,9 @@ public class NoteListController {
     private javafx.scene.control.Button loginButton;
 
     @FXML
+    private javafx.scene.layout.HBox acrylicSettingBox;
+
+    @FXML
     private javafx.scene.control.Label appTitleLabel;
     @FXML
     private Button trashToggleBtn;
@@ -73,6 +76,14 @@ public class NoteListController {
         acrylicToggle.setSelected(App.isGlassEnabled());
         autoHideTitleToggle.setSelected(App.isAutoHideTitleEnabled());
         syncToggle.setSelected(App.isCloudSyncEnabled());
+        
+        // Ẩn cài đặt hiệu ứng Acrylic trên Linux vì OS đã tự quản lý qua Compositor
+        if (System.getProperty("os.name").toLowerCase().contains("linux")) {
+            if (acrylicSettingBox != null) {
+                acrylicSettingBox.setVisible(false);
+                acrylicSettingBox.setManaged(false);
+            }
+        }
         
         // ... (Listeners cũ giữ nguyên)
         themeCombo.valueProperty().addListener((obs, oldVal, newVal) -> {

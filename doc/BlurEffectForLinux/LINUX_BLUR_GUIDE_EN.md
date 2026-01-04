@@ -17,8 +17,11 @@ chmod +x setup_linux_blur_en.sh
 ### Hyprland (Wayland)
 Add to your `~/.config/hypr/hyprland.conf`:
 ```ini
+# Rules for NoTeThing
 windowrule = opacity 0.85 0.85, ^(NoTeThing)$
 windowrulev2 = float, class:^(NoTeThing)$
+windowrulev2 = blur, class:^(NoTeThing)$
+windowrulev2 = ignorezero, class:^(NoTeThing)$
 ```
 
 ### KDE Plasma (KWin)
@@ -34,4 +37,20 @@ windowrulev2 = float, class:^(NoTeThing)$
 3. Enable Blur for specific apps and enter `NoTeThing`.
 
 ### Xfce / i3wm / bspwm (Using Picom)
-Use `picom` with `glx` backend or `picom-pijulius` fork for best results.
+Use `picom` with `glx` backend. See detailed guide at **[PICOM_BLUR_GUIDE_EN.md](PICOM_BLUR_GUIDE_EN.md)**.
+Ensure your config includes:
+```conf
+blur: {
+  method = "dual_kawase";
+  strength = 5;
+}
+```
+
+## 3. Troubleshooting
+
+If the effect is not working, check if the Window Class name is exactly `NoTeThing`:
+
+- **X11 (Picom/KDE/Xfce)**: Run `xprop WM_CLASS` and click on a NoTeThing window.
+- **Wayland (Hyprland)**: Run `hyprctl clients` and look for the `class` of NoTeThing.
+
+If the class name is different (e.g., `java-lang-Thread`), replace `NoTeThing` with that name in your configuration.

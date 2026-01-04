@@ -17,8 +17,11 @@ chmod +x setup_linux_blur.sh
 ### Hyprland (Wayland)
 Thêm vào file `~/.config/hypr/hyprland.conf`:
 ```ini
+# Quy tắc cho NoTeThing
 windowrule = opacity 0.85 0.85, ^(NoTeThing)$
 windowrulev2 = float, class:^(NoTeThing)$
+windowrulev2 = blur, class:^(NoTeThing)$
+windowrulev2 = ignorezero, class:^(NoTeThing)$
 ```
 
 ### KDE Plasma (KWin)
@@ -34,4 +37,20 @@ windowrulev2 = float, class:^(NoTeThing)$
 3. Bật Blur cho ứng dụng cụ thể và nhập `NoTeThing`.
 
 ### Xfce / i3wm / bspwm (Dùng Picom)
-Sử dụng `picom` với backend `glx` hoặc fork `picom-pijuilius` để có kết quả tốt nhất.
+Sử dụng `picom` với backend `glx`. Xem hướng dẫn chi tiết tại **[PICOM_BLUR_GUIDE.md](PICOM_BLUR_GUIDE.md)**.
+Đảm bảo file cấu hình có đoạn:
+```conf
+blur: {
+  method = "dual_kawase";
+  strength = 5;
+}
+```
+
+## 3. Xử lý lỗi (Troubleshooting)
+
+Nếu hiệu ứng không hoạt động, hãy kiểm tra xem tên lớp cửa sổ (Window Class) có chính xác là `NoTeThing` không:
+
+- **X11 (Picom/KDE/Xfce)**: Chạy lệnh `xprop WM_CLASS` sau đó click vào cửa sổ NoTeThing.
+- **Wayland (Hyprland)**: Chạy lệnh `hyprctl clients` và tìm mục `class` của NoTeThing.
+
+Nếu tên lớp khác (ví dụ: `java-lang-Thread`), hãy thay thế tên đó vào các file cấu hình trên.

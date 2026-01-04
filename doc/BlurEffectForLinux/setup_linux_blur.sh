@@ -36,6 +36,8 @@ elif [[ "$XDG_CURRENT_DESKTOP" == *"Hyprland"* ]]; then
             echo "# NoTeThing Blur Rules" >> "$CONFIG_FILE"
             echo "windowrule = opacity 0.85 0.85, ^($APP_CLASS)$" >> "$CONFIG_FILE"
             echo "windowrulev2 = float, class:^($APP_CLASS)$" >> "$CONFIG_FILE"
+            echo "windowrulev2 = blur, class:^($APP_CLASS)$" >> "$CONFIG_FILE"
+            echo "windowrulev2 = ignorezero, class:^($APP_CLASS)$" >> "$CONFIG_FILE"
             echo -e "${GREEN}Đã thêm xong! Vui lòng reload Hyprland (Super + M hoặc command).${NC}"
         fi
     else
