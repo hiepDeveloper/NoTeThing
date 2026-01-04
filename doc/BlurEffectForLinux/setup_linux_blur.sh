@@ -53,10 +53,33 @@ else
     # Kiểm tra Picom cho X11 (Xfce, i3, bspwm, LXQt...)
     if command -v picom >/dev/null 2>&1; then
         echo -e "${GREEN}✓ Phát hiện Picom đã được cài đặt.${NC}"
+        
+        # Đặc biệt cho XFCE: Kiểm tra xem Compositor mặc định có đang chạy không
+        if [[ "$XDG_CURRENT_DESKTOP" == *"XFCE"* ]]; then
+            IS_COMPOSITING=$(xfconf-query -c xfwm4 -p /general/use_compositing 2>/dev/null)
+            if [ "$IS_COMPOSITING" == "true" ]; then
+                echo -e "${RED}⚠ Compositor mặc định của XFCE đang bật. Picom không thể khởi động.${NC}"
+                read -p "Bạn có muốn tắt Compositor của XFCE để dùng Picom không? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    xfconf-query -c xfwm4 -p /general/use_compositing -s false
+                    echo -e "${GREEN}✓ Đã tắt Compositor của XFCE.${NC}"
+                else
+                    echo "Vui lòng tự tắt 'Enable display compositing' trong Window Manager Tweaks."
+                fi
+            fi
+        fi
+
         if ! pgrep -x "picom" > /dev/null; then
             echo "Picom đang KHÔNG chạy. Đang thử khởi động Picom..."
-            picom --backend glx --blur-method dual_kawase --blur-strength 5 &
-            echo -e "${GREEN}✓ Đã khởi động Picom với cấu hình Blur.${NC}"
+            # Thử khởi động picom, bỏ qua các lỗi lặt vặt
+            picom --backend glx --blur-method dual_kawase --blur-strength 5 > /dev/null 2>&1 &
+            sleep 1
+            if pgrep -x "picom" > /dev/null; then
+                echo -e "${GREEN}✓ Đã khởi động Picom thành công.${NC}"
+            else
+                echo -e "${RED}✗ Lỗi: Không thể khởi động Picom. Có thể một Compositor khác vẫn đang chạy.${NC}"
+            fi
         else
             echo -e "${GREEN}✓ Picom đang chạy.${NC}"
         fi

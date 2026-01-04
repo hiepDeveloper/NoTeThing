@@ -85,12 +85,6 @@ jobs:
         # Đã cài binutils fakeroot ở bước Rust nếu cần, nhưng jpackage cần chúng
         sudo apt-get install -y binutils fakeroot
         cp notething/src/main/resources/org/images/icon.png .
-        # Copy các script hỗ trợ vào thư mục đóng gói để người dùng dễ thấy
-        cp doc/BlurEffectForLinux/setup_linux_blur.sh dist/NoTeThing/ || true
-        cp doc/BlurEffectForLinux/setup_linux_blur_en.sh dist/NoTeThing/ || true
-        cp doc/BlurEffectForLinux/README_LINUX_VN.md dist/NoTeThing/ || true
-        cp doc/BlurEffectForLinux/README_LINUX.md dist/NoTeThing/ || true
-        
         jpackage --name "NoTeThing" \
                  --vendor "hiepDeveloper" \
                  --app-version "${{ steps.get_version.outputs.version }}" \
@@ -100,6 +94,14 @@ jobs:
                  --type app-image \
                  --dest dist \
                  --icon icon.png
+
+        # Copy các script hỗ trợ vào thư mục đóng gói SAU KHI jpackage tạo ra thư mục
+        cp doc/BlurEffectForLinux/setup_linux_blur.sh dist/NoTeThing/
+        cp doc/BlurEffectForLinux/setup_linux_blur_en.sh dist/NoTeThing/
+        cp doc/BlurEffectForLinux/README_LINUX_VN.md dist/NoTeThing/
+        cp doc/BlurEffectForLinux/README_LINUX.md dist/NoTeThing/
+        chmod +x dist/NoTeThing/setup_linux_blur.sh
+        chmod +x dist/NoTeThing/setup_linux_blur_en.sh
 
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4

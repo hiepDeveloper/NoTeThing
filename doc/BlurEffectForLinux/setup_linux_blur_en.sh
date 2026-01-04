@@ -53,10 +53,32 @@ else
     # Check Picom for X11 (Xfce, i3, bspwm, LXQt...)
     if command -v picom >/dev/null 2>&1; then
         echo -e "${GREEN}✓ Picom is detected as installed.${NC}"
+
+        # XFCE specific: Check if internal compositor is running
+        if [[ "$XDG_CURRENT_DESKTOP" == *"XFCE"* ]]; then
+            IS_COMPOSITING=$(xfconf-query -c xfwm4 -p /general/use_compositing 2>/dev/null)
+            if [ "$IS_COMPOSITING" == "true" ]; then
+                echo -e "${RED}⚠ XFCE internal compositor is active. Picom cannot start.${NC}"
+                read -p "Do you want to disable XFCE compositor to use Picom? (y/n) " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    xfconf-query -c xfwm4 -p /general/use_compositing -s false
+                    echo -e "${GREEN}✓ XFCE compositor disabled.${NC}"
+                else
+                    echo "Please disable 'Enable display compositing' in Window Manager Tweaks manually."
+                fi
+            fi
+        fi
+
         if ! pgrep -x "picom" > /dev/null; then
             echo "Picom is NOT running. Attempting to start Picom..."
-            picom --backend glx --blur-method dual_kawase --blur-strength 5 &
-            echo -e "${GREEN}✓ Started Picom with Blur configuration.${NC}"
+            picom --backend glx --blur-method dual_kawase --blur-strength 5 > /dev/null 2>&1 &
+            sleep 1
+            if pgrep -x "picom" > /dev/null; then
+                echo -e "${GREEN}✓ Picom started successfully.${NC}"
+            else
+                echo -e "${RED}✗ Error: Failed to start Picom. Another compositor might still be running.${NC}"
+            fi
         else
             echo -e "${GREEN}✓ Picom is already running.${NC}"
         fi
