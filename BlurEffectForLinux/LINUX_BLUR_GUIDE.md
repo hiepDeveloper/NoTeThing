@@ -34,19 +34,30 @@ windowrulev2 = float, class:^(NoTeThing)$
 3. Bật Blur cho ứng dụng cụ thể và nhập `NoTeThing`.
 
 ### Xfce / i3wm / bspwm (Dùng Picom)
-Sử dụng `picom` với backend `glx` hoặc fork `picom-pijulius` để hỗ trợ blur đẹp.
-Trong file `picom.conf`:
+Sử dụng `picom` với backend `glx` hoặc fork `picom-pijuilius` để có kết quả tốt nhất.
+
+**Cách nhanh nhất:** Copy toàn bộ nội dung file [picom.conf](./picom.conf) đi kèm trong thư mục này và thay thế cho file cấu hình cũ của bạn tại `~/.config/picom/picom.conf`.
+
+Nếu bạn muốn tự cấu hình, hãy đảm bảo có các thiết lập sau:
 ```conf
+# 1. Bật nhận diện bo góc để Blur không bị vuông
+detect-rounded-corners = true;
+
+# 2. Cấu hình hiệu ứng Blur (Frost effect)
 blur: {
   method = "dual_kawase";
-  strength = 6;
+  strength = 7;
   background = true;
 }
+
+# 3. Quy tắc độ trong suốt và loại trừ Popup
 opacity-rule = [
-  "85:class_g = 'NoTeThing'"
+  "85:class_g = 'NoTeThing' && window_type = 'normal'"
 ];
-shadow-exclude = [
-  "class_g = 'NoTeThing' && window_type = 'popup_menu'",
-  "class_g = 'NoTeThing' && window_type = 'tooltip'"
+
+blur-background-exclude = [
+  "class_g = 'NoTeThing' && !window_type = 'normal'",
+  "window_type = 'popup_menu'",
+  "window_type = 'tooltip'"
 ];
 ```

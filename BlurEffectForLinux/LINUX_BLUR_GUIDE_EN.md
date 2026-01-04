@@ -34,19 +34,30 @@ windowrulev2 = float, class:^(NoTeThing)$
 3. Enable Blur for specific apps and enter `NoTeThing`.
 
 ### Xfce / i3wm / bspwm (Using Picom)
-Use `picom` with `glx` backend or `picom-pijulius` fork for high-quality blur.
-In `picom.conf`:
+Use `picom` with `glx` backend or `picom-pijulius` fork for best results.
+
+**Quick Setup:** Copy the entire content of the provided [picom.conf](./picom.conf) file in this directory and replace your current configuration at `~/.config/picom/picom.conf`.
+
+If you prefer manual configuration, ensure you have these settings:
 ```conf
+# 1. Enable rounded corner detection to fix square blur
+detect-rounded-corners = true;
+
+# 2. Blur configuration (Frost effect)
 blur: {
   method = "dual_kawase";
-  strength = 6;
+  strength = 7;
   background = true;
 }
+
+# 3. Opacity rules and Popup exclusion
 opacity-rule = [
-  "85:class_g = 'NoTeThing'"
+  "85:class_g = 'NoTeThing' && window_type = 'normal'"
 ];
-shadow-exclude = [
-  "class_g = 'NoTeThing' && window_type = 'popup_menu'",
-  "class_g = 'NoTeThing' && window_type = 'tooltip'"
+
+blur-background-exclude = [
+  "class_g = 'NoTeThing' && !window_type = 'normal'",
+  "window_type = 'popup_menu'",
+  "window_type = 'tooltip'"
 ];
 ```

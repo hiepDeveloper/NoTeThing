@@ -308,6 +308,12 @@ public class PrimaryController {
         if (App.isDarkMode()) {
             pickerRoot.getStyleClass().add("dark");
         }
+
+        // Trên Linux, bỏ shadow của JavaFX vì Picom/Compositor sẽ tự làm shadow.
+        // Việc để shadow trong CSS làm cửa sổ Popup to ra và gây lỗi Blur nhòe nhoẹt.
+        if (System.getProperty("os.name").toLowerCase().contains("linux")) {
+            pickerRoot.setStyle("-fx-effect: null; -fx-background-radius: 10; -fx-border-radius: 10;");
+        }
         
         Popup popup = new Popup();
         popup.getContent().add(pickerRoot);
