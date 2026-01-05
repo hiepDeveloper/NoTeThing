@@ -34,5 +34,15 @@ For the Blur effect to work, your system needs a **Compositor**:
   - If running via XWayland (JavaFX default), KDE will still detect it automatically.
   - For Hyprland, the setup script will add a configuration line to `hyprland.conf`.
 
+## ❓ Troubleshooting
+
+### Blur disappears when focusing a note (GNOME)
+If you are using GNOME with the **Blur my Shell** extension, the blur effect might disappear as soon as you focus (click on) a note. To fix this:
+1. Open the **Blur my Shell** extension settings.
+2. Go to the **Applications** or general settings tab.
+3. Find the **"Opaque focused window"** option.
+4. Set it to **OFF**.
+5. The note will now remain blurred regardless of focus.
+
 ---
 *If the blur effect is not visible, please run the setup script for troubleshooting.*

@@ -48,6 +48,10 @@ elif [[ "$XDG_CURRENT_DESKTOP" == *"GNOME"* ]]; then
     echo "1. Please install the extension 'Blur my Shell'."
     echo "   Link: https://extensions.gnome.org/extension/3193/blur-my-shell/"
     echo "2. Open Extension Settings -> Applications tab -> Add '$APP_CLASS' to whitelist."
+    echo -e "${RED}⚠ Important Note for GNOME:${NC}"
+    echo "   In 'Blur my Shell' settings, ENSURE that the option"
+    echo "   'Opaque focused window' is set to OFF."
+    echo "   If enabled, notes will lose blur as soon as you focus them."
 
 else
     # Check Picom for X11 (Xfce, i3, bspwm, LXQt...)

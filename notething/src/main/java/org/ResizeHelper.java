@@ -57,6 +57,14 @@ public class ResizeHelper {
         javafx.application.Platform.runLater(listener::getWindowId);
     }
 
+    public static void startNativeDrag(Stage stage, MouseEvent event) {
+        if (IS_WINDOWS) {
+            WindowsResizeListener.startMove(stage);
+        } else if (IS_LINUX) {
+            LinuxResizeListener.startMove(stage, event);
+        }
+    }
+
     private static void addJavaFXResizeListener(Stage stage) {
         JavaFXResizeListener listener = new JavaFXResizeListener(stage);
         stage.getScene().addEventFilter(MouseEvent.MOUSE_MOVED, listener::handleMouseMoved);
@@ -69,7 +77,6 @@ public class ResizeHelper {
     private static class WindowsResizeListener {
         private final Stage stage;
         private WinDef.HWND hwnd;
-        // Direction constants
         private static final int HTLEFT = 10;
         private static final int HTRIGHT = 11;
         private static final int HTTOP = 12;
@@ -122,7 +129,6 @@ public class ResizeHelper {
         }
 
         private static final int WM_SYSCOMMAND = 0x0112;
-        private static final int SC_SIZE = 0xF000;
         private static final int SC_SIZELEFT = 0xF001;
         private static final int SC_SIZERIGHT = 0xF002;
         private static final int SC_SIZETOP = 0xF003;
@@ -131,22 +137,23 @@ public class ResizeHelper {
         private static final int SC_SIZEBOTTOM = 0xF006;
         private static final int SC_SIZEBOTTOMLEFT = 0xF007;
         private static final int SC_SIZEBOTTOMRIGHT = 0xF008;
+        private static final int SC_MOVE = 0xF010;
 
         public void handleMousePressed(MouseEvent event) {
             if (resizeDirection != 0) {
                 WinDef.HWND windowHandle = getHwnd();
                 if (windowHandle != null) {
-                    int sizeCommand = 0;
-                    switch (resizeDirection) {
-                        case HTLEFT: sizeCommand = SC_SIZELEFT; break;
-                        case HTRIGHT: sizeCommand = SC_SIZERIGHT; break;
-                        case HTTOP: sizeCommand = SC_SIZETOP; break;
-                        case HTTOPLEFT: sizeCommand = SC_SIZETOPLEFT; break;
-                        case HTTOPRIGHT: sizeCommand = SC_SIZETOPRIGHT; break;
-                        case HTBOTTOM: sizeCommand = SC_SIZEBOTTOM; break;
-                        case HTBOTTOMLEFT: sizeCommand = SC_SIZEBOTTOMLEFT; break;
-                        case HTBOTTOMRIGHT: sizeCommand = SC_SIZEBOTTOMRIGHT; break;
-                    }
+                    int sizeCommand = switch (resizeDirection) {
+                        case HTLEFT -> SC_SIZELEFT;
+                        case HTRIGHT -> SC_SIZERIGHT;
+                        case HTTOP -> SC_SIZETOP;
+                        case HTTOPLEFT -> SC_SIZETOPLEFT;
+                        case HTTOPRIGHT -> SC_SIZETOPRIGHT;
+                        case HTBOTTOM -> SC_SIZEBOTTOM;
+                        case HTBOTTOMLEFT -> SC_SIZEBOTTOMLEFT;
+                        case HTBOTTOMRIGHT -> SC_SIZEBOTTOMRIGHT;
+                        default -> 0;
+                    };
                     
                     if (sizeCommand != 0) {
                         User32API.INSTANCE.ReleaseCapture();
@@ -156,16 +163,27 @@ public class ResizeHelper {
                 }
             }
         }
+
+        public static void startMove(Stage stage) {
+            String title = stage.getTitle();
+            if (title != null && !title.isEmpty()) {
+                WinDef.HWND windowHandle = User32API.INSTANCE.FindWindow(null, title);
+                if (windowHandle != null) {
+                    User32API.INSTANCE.ReleaseCapture();
+                    // SC_MOVE (0xF010) + HTCAPTION (2)
+                    User32API.INSTANCE.PostMessage(windowHandle, WM_SYSCOMMAND, new WinDef.WPARAM(SC_MOVE | 2), new WinDef.LPARAM(0));
+                }
+            }
+        }
     }
 
-    // ================= LINUX LISTENER (NEW) =================
+    // ================= LINUX LISTENER =================
     private static class LinuxResizeListener {
         private final Stage stage;
         private com.sun.jna.NativeLong windowId;
         private Cursor cursor = Cursor.DEFAULT;
         private int resizeDetail = -1; 
 
-        // Directions for _NET_WM_MOVERESIZE
         private static final int _NET_WM_MOVERESIZE_SIZE_TOPLEFT = 0;
         private static final int _NET_WM_MOVERESIZE_SIZE_TOP = 1;
         private static final int _NET_WM_MOVERESIZE_SIZE_TOPRIGHT = 2;
@@ -174,15 +192,16 @@ public class ResizeHelper {
         private static final int _NET_WM_MOVERESIZE_SIZE_BOTTOM = 5;
         private static final int _NET_WM_MOVERESIZE_SIZE_BOTTOMLEFT = 6;
         private static final int _NET_WM_MOVERESIZE_SIZE_LEFT = 7;
+        private static final int _NET_WM_MOVERESIZE_MOVE = 8;
 
         public LinuxResizeListener(Stage stage) {
             this.stage = stage;
+            stage.getProperties().put("linux_resize_listener", this);
             stage.showingProperty().addListener((obs, old, newVal) -> {
                 if (newVal) javafx.application.Platform.runLater(this::getWindowId);
             });
         }
         
-        // X11 Interface
         private interface X11 extends com.sun.jna.Library {
             X11 INSTANCE = com.sun.jna.Native.load("X11", X11.class);
             class Window extends com.sun.jna.NativeLong { 
@@ -217,7 +236,7 @@ public class ResizeHelper {
              public int format;
              public com.sun.jna.NativeLong[] data = new com.sun.jna.NativeLong[5];
              public XClientMessageEvent() {
-                 this.type = 33; // ClientMessage
+                 this.type = 33; 
                  this.format = 32;
              }
         }
@@ -294,8 +313,21 @@ public class ResizeHelper {
             stage.getScene().setCursor(cursor);
         }
 
+        public static void startMove(Stage stage, MouseEvent event) {
+            LinuxResizeListener listener = (LinuxResizeListener) stage.getProperties().get("linux_resize_listener");
+            if (listener != null) {
+                listener.executeNativeAction(event, _NET_WM_MOVERESIZE_MOVE);
+            }
+        }
+
         public void handleMousePressed(MouseEvent event) {
-            if (resizeDetail != -1 && getWindowId() != null) {
+            if (resizeDetail != -1) {
+                executeNativeAction(event, resizeDetail);
+            }
+        }
+
+        private void executeNativeAction(MouseEvent event, int direction) {
+            if (getWindowId() != null) {
                 new Thread(() -> {
                     try {
                         X11 x11 = X11.INSTANCE;
@@ -312,14 +344,14 @@ public class ResizeHelper {
                         msg.format = 32;
                         msg.data[0] = new com.sun.jna.NativeLong((long)event.getScreenX());
                         msg.data[1] = new com.sun.jna.NativeLong((long)event.getScreenY());
-                        msg.data[2] = new com.sun.jna.NativeLong(resizeDetail);
+                        msg.data[2] = new com.sun.jna.NativeLong(direction);
                         msg.data[3] = new com.sun.jna.NativeLong(1);
                         msg.data[4] = new com.sun.jna.NativeLong(1);
                         com.sun.jna.NativeLong mask = new com.sun.jna.NativeLong(0x00100000L | 0x00080000L);
                         x11.XSendEvent(display, root, false, mask, msg);
                         x11.XFlush(display);
                         x11.XCloseDisplay(display);
-                    } catch(Exception e) { e.printStackTrace(); }
+                    } catch(Exception e) {}
                 }).start();
                 event.consume();
             }

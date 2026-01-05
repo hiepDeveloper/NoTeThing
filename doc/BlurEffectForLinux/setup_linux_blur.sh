@@ -48,6 +48,10 @@ elif [[ "$XDG_CURRENT_DESKTOP" == *"GNOME"* ]]; then
     echo "1. Vui lòng cài đặt Extension 'Blur my Shell'."
     echo "   Link: https://extensions.gnome.org/extension/3193/blur-my-shell/"
     echo "2. Mở cài đặt Extension -> Tab Applications -> Thêm '$APP_CLASS' vào whitelist."
+    echo -e "${RED}⚠ Lưu ý quan trọng cho GNOME:${NC}"
+    echo "   Trong cài đặt của 'Blur my Shell', hãy ĐẢM BẢO rằng tùy chọn"
+    echo "   'Opaque focused window' đang ở trạng thái TẮT (OFF)."
+    echo "   Nếu bật, ghi chú sẽ bị mất mờ ngay khi bạn nhấn vào nó."
 
 else
     # Kiểm tra Picom cho X11 (Xfce, i3, bspwm, LXQt...)

@@ -34,5 +34,14 @@ Script này sẽ:
   - Nếu chạy qua XWayland (mặc định của JavaFX), KDE vẫn sẽ tự động nhận diện.
   - Với Hyprland, script sẽ thêm 1 dòng cấu hình vào `hyprland.conf` để kích hoạt.
 
+## ❓ Giải quyết sự cố thường gặp
+
+### Lỗi mất Blur khi nhấn vào ghi chú (GNOME)
+Nếu bạn đang sử dụng GNOME với extension **Blur my Shell**, bạn có thể thấy ghi chú bị mất hiệu ứng mờ ngay khi bạn nhấn vào (Focus). Để sửa lỗi này:
+1. Mở cài đặt của extension **Blur my Shell**.
+2. Tìm tùy chọn **"Opaque focused window"**.
+3. Chuyển nó sang trạng thái **TẮT (OFF)**.
+4. Ghi chú sẽ luôn giữ được hiệu ứng mờ bất kể bạn có đang thao tác hay không.
+
 ---
 *Nếu gặp lỗi không hiển thị blur, vui lòng chạy script setup để được hỗ trợ kiểm tra lỗi.*

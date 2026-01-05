@@ -194,13 +194,15 @@ public class PrimaryController {
     private void handleMousePressed(MouseEvent event) {
         xOffset = event.getSceneX();
         yOffset = event.getSceneY();
+        
+        // Sử dụng Native Drag để di chuyển mượt mà hơn
+        Stage stage = (Stage) headerBox.getScene().getWindow();
+        ResizeHelper.startNativeDrag(stage, event);
     }
 
     @FXML
     private void handleMouseDragged(MouseEvent event) {
-        Stage stage = (Stage) headerBox.getScene().getWindow();
-        stage.setX(event.getScreenX() - xOffset);
-        stage.setY(event.getScreenY() - yOffset);
+        // Để trống vì Native Drag đã xử lý di chuyển mượt mà
     }
     
     @FXML
