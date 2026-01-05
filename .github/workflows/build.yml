@@ -72,13 +72,13 @@ jobs:
       shell: bash
 
     - name: Build Fat JAR with Maven
-      run: mvn -B clean package -DskipTests --no-transfer-progress
+      run: mvn -B -T 1C clean package -DskipTests --no-transfer-progress
       working-directory: notething
 
     - name: Get Version
       id: get_version
       run: |
-        VERSION=$(mvn -f notething/pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout)
+        VERSION=$(grep -m 1 "<version>" notething/pom.xml | sed -E 's/.*<version>(.*)<\/version>.*/\1/')
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "VERSION=$VERSION" >> $GITHUB_ENV
       shell: bash
@@ -102,7 +102,10 @@ jobs:
                  --main-class org.Launcher \
                  --type app-image \
                  --dest dist \
-                 --icon ${{ matrix.icon }}
+                 --icon ${{ matrix.icon }} \
+                 --strip-debug \
+                 --no-header-files \
+                 --no-man-pages
       shell: bash
 
     - name: Post-Package Setup (Linux)
@@ -150,7 +153,7 @@ jobs:
             folder_name=${dir%/}
             asset_name="${folder_name}.zip"
             echo "Zipping $folder_name to $asset_name"
-            (cd "$dir" && zip -r "../../release-assets/$asset_name" .)
+            (cd "$dir" && zip -r9 "../../release-assets/$asset_name" .)
           done
           cd ../release-assets
           sha256sum *.zip > checksums.txt
@@ -160,7 +163,7 @@ jobs:
         id: release_info
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
-          POM_VERSION=$(mvn -f notething/pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout)
+          POM_VERSION=$(grep -m 1 "<version>" notething/pom.xml | sed -E 's/.*<version>(.*)<\/version>.*/\1/')
           
           if [ "$POM_VERSION" != "$VERSION" ]; then
             echo "::error::Version mismatch! POM: $POM_VERSION, Tag: $VERSION"
