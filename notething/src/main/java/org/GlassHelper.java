@@ -41,10 +41,20 @@ public class GlassHelper {
                     } else {
                         System.err.println("✗ Failed to set Linux blur, result: " + result);
                     }
+
+                    // Tự động áp dụng lại khi cửa sổ nhận focus (Khắc phục lỗi trên GNOME/Arch)
+                    if (enable && stage.getProperties().get("linux_blur_retry_listener") == null) {
+                        stage.focusedProperty().addListener((obs, oldV, isFocused) -> {
+                            if (isFocused && App.isGlassEnabled()) {
+                                applyLinuxBlur(stage, true);
+                            }
+                        });
+                        stage.getProperties().put("linux_blur_retry_listener", true);
+                    }
                 } else {
-                    // Nếu là Linux và stage đang hiện mà XID vẫn = 0, thử lại sau 100ms
+                    // Nếu là Linux và stage đang hiện mà XID vẫn = 0, thử lại sau 150ms
                     if (stage.isShowing()) {
-                        javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.millis(150));
+                        javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.millis(200));
                         pause.setOnFinished(e -> applyLinuxBlur(stage, enable));
                         pause.play();
                     }
