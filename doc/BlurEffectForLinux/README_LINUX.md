@@ -44,5 +44,11 @@ If you are using GNOME with the **Blur my Shell** extension, the blur effect mig
 4. Set it to **OFF**.
 5. The note will now remain blurred regardless of focus.
 
+### ⚠️ Known Limitations on GNOME
+GNOME (Mutter) handles background blur through third-party extensions, which may lead to some visual artifacts:
+- **Ghosting Effect:** You might see "ghosting" or delayed rendering when moving one blurred window over another.
+- **Performance:** Resizing windows may feel slightly less smooth compared to KDE or X11/Picom.
+- **Recommendation:** For the absolute best blur experience, we recommend using **KDE Plasma** or a lightweight environment with **Picom**.
+
 ---
 *If the blur effect is not visible, please run the setup script for troubleshooting.*

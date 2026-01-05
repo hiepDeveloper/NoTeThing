@@ -43,5 +43,11 @@ Nếu bạn đang sử dụng GNOME với extension **Blur my Shell**, bạn có
 3. Chuyển nó sang trạng thái **TẮT (OFF)**.
 4. Ghi chú sẽ luôn giữ được hiệu ứng mờ bất kể bạn có đang thao tác hay không.
 
+### ⚠️ Hạn chế đã biết trên GNOME
+Do GNOME (Mutter) không hỗ trợ Blur native mà phải thông qua Extension bên thứ ba, nên sẽ có một số hạn chế:
+- **Hiệu ứng "Bóng ma" (Ghosting):** Bạn có thể thấy các vệt mờ hoặc bóng đen khi di chuyển các cửa sổ đè lên nhau.
+- **Hiệu năng:** Việc thay đổi kích thước cửa sổ có thể cảm giác không mượt bằng trên KDE hoặc X11 dùng Picom.
+- **Khuyên dùng:** Để có trải nghiệm Blur "Premium" nhất, chúng tôi khuyến khích sử dụng **KDE Plasma** hoặc các môi trường nhẹ dùng **Picom**.
+
 ---
 *Nếu gặp lỗi không hiển thị blur, vui lòng chạy script setup để được hỗ trợ kiểm tra lỗi.*

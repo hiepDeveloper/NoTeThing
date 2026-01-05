@@ -9,6 +9,21 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+echo -e "${BLUE}"
+cat << 'EOF'
+ _ _      ___     ___  _    _               
+| \ | ___|_ _|___|_ _|| |_ <_>._ _  ___     
+|   |/ . \| |/ ._>| | | . || || ' |/ . |    
+|_\_|\___/|_|\___.|_| |_|_||_||_|_|\_. |    
+                                   <___'    
+ ___  _             ___        _            
+| . >| | _ _  _ _  / __> ___ _| |_ _ _  ___ 
+| . \| || | || '_> \__ \/ ._> | | | | || . \
+|___/|_|`___||_|   <___/\___. |_| `___||  _/
+                                       |_|  
+EOF
+echo -e "${NC}"
+
 echo -e "${BLUE}=== Setup Blur Effects for NoTeThing ===${NC}"
 echo "NoTeThing now includes a Native library to automatically trigger Blur."
 echo "You just need to ensure your system is running a Compositor (KWin, Picom, Hyprland...)."
@@ -49,9 +64,9 @@ elif [[ "$XDG_CURRENT_DESKTOP" == *"GNOME"* ]]; then
     echo "   Link: https://extensions.gnome.org/extension/3193/blur-my-shell/"
     echo "2. Open Extension Settings -> Applications tab -> Add '$APP_CLASS' to whitelist."
     echo -e "${RED}⚠ Important Note for GNOME:${NC}"
-    echo "   In 'Blur my Shell' settings, ENSURE that the option"
-    echo "   'Opaque focused window' is set to OFF."
-    echo "   If enabled, notes will lose blur as soon as you focus them."
+    echo "   - ENSURE that the option 'Opaque focused window' is set to OFF."
+    echo "   - 'Ghosting' effects may occur when moving blurred windows."
+    echo "   - For the best experience, consider using KDE or Picom (X11)."
 
 else
     # Check Picom for X11 (Xfce, i3, bspwm, LXQt...)

@@ -9,6 +9,21 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+echo -e "${BLUE}"
+cat << 'EOF'
+ _ _      ___     ___  _    _               
+| \ | ___|_ _|___|_ _|| |_ <_>._ _  ___     
+|   |/ . \| |/ ._>| | | . || || ' |/ . |    
+|_\_|\___/|_|\___.|_| |_|_||_||_|_|\_. |    
+                                   <___'    
+ ___  _             ___        _            
+| . >| | _ _  _ _  / __> ___ _| |_ _ _  ___ 
+| . \| || | || '_> \__ \/ ._> | | | | || . \
+|___/|_|`___||_|   <___/\___. |_| `___||  _/
+                                       |_|  
+EOF
+echo -e "${NC}"
+
 echo -e "${BLUE}=== Cấu hình Hiệu ứng Kính mờ (Blur) cho NoTeThing ===${NC}"
 echo "NoTeThing hiện đã tích hợp thư viện Native để tự động kích hoạt Blur."
 echo "Bạn chỉ cần đảm bảo hệ thống đang chạy một Compositor (KWin, Picom, Hyprland...)."
@@ -49,9 +64,9 @@ elif [[ "$XDG_CURRENT_DESKTOP" == *"GNOME"* ]]; then
     echo "   Link: https://extensions.gnome.org/extension/3193/blur-my-shell/"
     echo "2. Mở cài đặt Extension -> Tab Applications -> Thêm '$APP_CLASS' vào whitelist."
     echo -e "${RED}⚠ Lưu ý quan trọng cho GNOME:${NC}"
-    echo "   Trong cài đặt của 'Blur my Shell', hãy ĐẢM BẢO rằng tùy chọn"
-    echo "   'Opaque focused window' đang ở trạng thái TẮT (OFF)."
-    echo "   Nếu bật, ghi chú sẽ bị mất mờ ngay khi bạn nhấn vào nó."
+    echo "   - ĐẢM BẢO rằng tùy chọn 'Opaque focused window' đang ở trạng thái TẮT (OFF)."
+    echo "   - Hiệu ứng 'Bóng ma' (ghosting) có thể xuất hiện khi di chuyển cửa sổ."
+    echo "   - Để có trải nghiệm tốt nhất, nên dùng KDE hoặc Picom (X11)."
 
 else
     # Kiểm tra Picom cho X11 (Xfce, i3, bspwm, LXQt...)
