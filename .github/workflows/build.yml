@@ -103,9 +103,7 @@ jobs:
                  --type app-image \
                  --dest dist \
                  --icon ${{ matrix.icon }} \
-                 --strip-debug \
-                 --no-header-files \
-                 --no-man-pages
+                 --jlink-options "--strip-debug --no-header-files --no-man-pages"
       shell: bash
 
     - name: Post-Package Setup (Linux)
