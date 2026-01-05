@@ -38,21 +38,27 @@ public class GlassHelper {
                 if (xid != 0) {
                     int result = LinuxBlurLib.INSTANCE.set_blur_x11(xid, enable ? 1 : 0);
                     
-                    // Nếu bật Blur, áp dụng luôn bo góc thực ở mức OS để fix lỗi GNOME Mutter
                     if (enable) {
-                        int w = (int) stage.getWidth();
-                        int h = (int) stage.getHeight();
-                        // Bo góc 15px tương ứng với CSS
-                        LinuxBlurLib.INSTANCE.set_window_shape_rounded(xid, w, h, 15);
+                        updateLinuxShape(stage, xid);
+                        
+                        // Thắng bộ lắng nghe resize để cập nhật Shape liên tục (Fix lỗi vết đen khi resize trên Linux)
+                        if (stage.getProperties().get("linux_shape_listener_added") == null) {
+                            javafx.beans.value.ChangeListener<Number> resizeHandler = (obs, old, val) -> {
+                                if (App.isGlassEnabled()) {
+                                    updateLinuxShape(stage, xid);
+                                }
+                            };
+                            stage.widthProperty().addListener(resizeHandler);
+                            stage.heightProperty().addListener(resizeHandler);
+                            stage.getProperties().put("linux_shape_listener_added", true);
+                        }
                     }
 
                     if (result == 0) {
                         System.out.println("✓ Linux blur " + (enable ? "enabled" : "disabled") + " for XID: " + xid);
-                    } else {
-                        System.err.println("✗ Failed to set Linux blur, result: " + result);
                     }
-
-                    // Tự động áp dụng lại khi cửa sổ nhận focus (Khắc phục lỗi trên GNOME/Arch)
+                    
+                    // Focus Listener (Giữ blur ổn định trên GNOME)
                     if (enable && stage.getProperties().get("linux_blur_retry_listener") == null) {
                         stage.focusedProperty().addListener((obs, oldV, isFocused) -> {
                             if (isFocused && App.isGlassEnabled()) {
@@ -62,7 +68,6 @@ public class GlassHelper {
                         stage.getProperties().put("linux_blur_retry_listener", true);
                     }
                 } else {
-                    // Nếu là Linux và stage đang hiện mà XID vẫn = 0, thử lại sau 150ms
                     if (stage.isShowing()) {
                         javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.millis(200));
                         pause.setOnFinished(e -> applyLinuxBlur(stage, enable));
@@ -70,9 +75,17 @@ public class GlassHelper {
                     }
                 }
             } catch (Throwable e) {
-                System.err.println("⚠ Lỗi xử lý blur Linux: " + e.getMessage());
+                // Ignore
             }
         });
+    }
+
+    private static void updateLinuxShape(Stage stage, long xid) {
+        int w = (int) stage.getWidth();
+        int h = (int) stage.getHeight();
+        if (w > 0 && h > 0) {
+            LinuxBlurLib.INSTANCE.set_window_shape_rounded(xid, w, h, 15);
+        }
     }
 
     /**
