@@ -19,6 +19,7 @@ public class GlassHelper {
         // Tên thư viện là "notething_blur" (tương ứng file libnotething_blur.so)
         LinuxBlurLib INSTANCE = com.sun.jna.Native.load("notething_blur", LinuxBlurLib.class);
         int set_blur_x11(long windowId, int enable);
+        int set_window_shape_rounded(long windowId, int width, int height, int radius);
     }
 
     public static void applyBlur(Stage stage, boolean enable) {
@@ -36,6 +37,15 @@ public class GlassHelper {
                 long xid = getLinuxWindowId(stage);
                 if (xid != 0) {
                     int result = LinuxBlurLib.INSTANCE.set_blur_x11(xid, enable ? 1 : 0);
+                    
+                    // Nếu bật Blur, áp dụng luôn bo góc thực ở mức OS để fix lỗi GNOME Mutter
+                    if (enable) {
+                        int w = (int) stage.getWidth();
+                        int h = (int) stage.getHeight();
+                        // Bo góc 15px tương ứng với CSS
+                        LinuxBlurLib.INSTANCE.set_window_shape_rounded(xid, w, h, 15);
+                    }
+
                     if (result == 0) {
                         System.out.println("✓ Linux blur " + (enable ? "enabled" : "disabled") + " for XID: " + xid);
                     } else {
