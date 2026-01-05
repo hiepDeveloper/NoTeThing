@@ -250,13 +250,38 @@ public class ResizeHelper {
                          X11.Window root = x11.XDefaultRootWindow(display);
                          String title = stage.getTitle();
                          if (title != null && !title.isEmpty()) {
-                             windowId = findWindowByTitle(x11, display, root, title);
+                             com.sun.jna.NativeLong rawId = findWindowByTitle(x11, display, root, title);
+                             if (rawId != null) {
+                                 // Leo lên để tìm Top-level window thực sự (quan trọng cho GNOME)
+                                 windowId = getTopLevelWindow(x11, display, new X11.Window(rawId.longValue()), root);
+                             }
                          }
                          x11.XCloseDisplay(display);
                      }
                  } catch (Exception e) {}
             }
             return windowId;
+        }
+
+        private com.sun.jna.NativeLong getTopLevelWindow(X11 x11, X11.Display display, X11.Window window, X11.Window root) {
+            com.sun.jna.ptr.NativeLongByReference rootReturn = new com.sun.jna.ptr.NativeLongByReference();
+            com.sun.jna.ptr.NativeLongByReference parentReturn = new com.sun.jna.ptr.NativeLongByReference();
+            com.sun.jna.ptr.PointerByReference childrenReturn = new com.sun.jna.ptr.PointerByReference();
+            com.sun.jna.ptr.IntByReference nChildrenReturn = new com.sun.jna.ptr.IntByReference();
+
+            X11.Window current = window;
+            while (x11.XQueryTree(display, current, rootReturn, parentReturn, childrenReturn, nChildrenReturn) != 0) {
+                if (childrenReturn.getValue() != null) {
+                    x11.XFree(childrenReturn.getValue());
+                }
+                long parent = parentReturn.getValue().longValue();
+                long rootId = rootReturn.getValue().longValue();
+                if (parent == rootId || parent == 0) {
+                    return current;
+                }
+                current = new X11.Window(parent);
+            }
+            return window;
         }
         
         private com.sun.jna.NativeLong findWindowByTitle(X11 x11, X11.Display display, X11.Window window, String targetTitle) {
@@ -347,7 +372,7 @@ public class ResizeHelper {
                         msg.data[2] = new com.sun.jna.NativeLong(direction);
                         msg.data[3] = new com.sun.jna.NativeLong(1);
                         msg.data[4] = new com.sun.jna.NativeLong(1);
-                        com.sun.jna.NativeLong mask = new com.sun.jna.NativeLong(0x00100000L | 0x00080000L);
+                        com.sun.jna.NativeLong mask = new com.sun.jna.NativeLong(0x00100000L | 0x00080000L | 0x00010000L); // Thêm SubstructureRedirect
                         x11.XSendEvent(display, root, false, mask, msg);
                         x11.XFlush(display);
                         x11.XCloseDisplay(display);
