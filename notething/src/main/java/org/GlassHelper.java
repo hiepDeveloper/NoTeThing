@@ -20,6 +20,7 @@ public class GlassHelper {
         LinuxBlurLib INSTANCE = com.sun.jna.Native.load("notething_blur", LinuxBlurLib.class);
         int set_blur_x11(long windowId, int enable);
         int set_window_shape_rounded(long windowId, int width, int height, int radius);
+        int reset_window_shape(long windowId);
     }
 
     public static void applyBlur(Stage stage, boolean enable) {
@@ -41,26 +42,38 @@ public class GlassHelper {
                     if (enable) {
                         updateLinuxShape(stage, xid);
                         
-                        // Thắng bộ lắng nghe resize để cập nhật Shape liên tục (Fix lỗi vết đen khi resize trên Linux)
+                        // Thêm bộ lắng nghe resize để cập nhật Shape (Fix lỗi vết đen khi resize trên Linux)
+                        // Có debounce để tránh spam X11
                         if (stage.getProperties().get("linux_shape_listener_added") == null) {
+                            javafx.animation.PauseTransition debounce = new javafx.animation.PauseTransition(javafx.util.Duration.millis(50));
+                            debounce.setOnFinished(e -> {
+                                if (App.isGlassEnabled() && stage.isShowing()) {
+                                    updateLinuxShape(stage, xid);
+                                }
+                            });
+
                             javafx.beans.value.ChangeListener<Number> resizeHandler = (obs, old, val) -> {
                                 if (App.isGlassEnabled()) {
-                                    updateLinuxShape(stage, xid);
+                                    debounce.playFromStart();
                                 }
                             };
                             stage.widthProperty().addListener(resizeHandler);
                             stage.heightProperty().addListener(resizeHandler);
                             stage.getProperties().put("linux_shape_listener_added", true);
                         }
+                    } else {
+                        // Reset hình dạng cửa sổ về mặc định khi tắt blur
+                        LinuxBlurLib.INSTANCE.reset_window_shape(xid);
                     }
 
                     if (result == 0) {
-                        System.out.println("✓ Linux blur " + (enable ? "enabled" : "disabled") + " for XID: " + xid);
+                        // System.out.println("✓ Linux blur " + (enable ? "enabled" : "disabled") + " for XID: " + xid);
                     }
                     
                     // Focus Listener (Giữ blur ổn định trên GNOME)
                     if (enable && stage.getProperties().get("linux_blur_retry_listener") == null) {
                         stage.focusedProperty().addListener((obs, oldV, isFocused) -> {
+                            // Chỉ gọi lại nếu App vẫn đang bật hiệu ứng glass
                             if (isFocused && App.isGlassEnabled()) {
                                 applyLinuxBlur(stage, true);
                             }
@@ -69,7 +82,7 @@ public class GlassHelper {
                     }
                 } else {
                     if (stage.isShowing()) {
-                        javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.millis(200));
+                        javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.millis(300));
                         pause.setOnFinished(e -> applyLinuxBlur(stage, enable));
                         pause.play();
                     }
@@ -84,9 +97,11 @@ public class GlassHelper {
         int w = (int) stage.getWidth();
         int h = (int) stage.getHeight();
         if (w > 0 && h > 0) {
-            LinuxBlurLib.INSTANCE.set_window_shape_rounded(xid, w, h, 15);
+            LinuxBlurLib.INSTANCE.set_window_shape_rounded(xid, w, h, 7);
         }
     }
+
+
 
     /**
      * Dùng Reflection để "móc" XID (Native Window ID) từ nội bộ JavaFX trên Linux.

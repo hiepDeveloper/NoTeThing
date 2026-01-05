@@ -67,18 +67,58 @@ pub extern "C" fn set_window_shape_rounded(window_id: c_ulong, width: c_int, hei
 
         let region = xlib::XCreateRegion();
         
-        let mut rect = xlib::XRectangle { x: radius as i16, y: 0, width: (width - 2 * radius) as u16, height: height as u16 };
-        xlib::XUnionRectWithRegion(&mut rect, region, region);
-
-        let mut rect_mid = xlib::XRectangle { x: 0, y: radius as i16, width: width as u16, height: (height - 2 * radius) as u16 };
+        // 1. Thân chính (Hình chữ nhật giữa)
+        let mut rect_mid = xlib::XRectangle { 
+            x: 0, 
+            y: radius as i16, 
+            width: width as u16, 
+            height: (height - 2 * radius) as u16 
+        };
         xlib::XUnionRectWithRegion(&mut rect_mid, region, region);
 
+        // 2. Phần trên (Không bao gồm góc)
+        let mut rect_top = xlib::XRectangle { 
+            x: radius as i16, 
+            y: 0, 
+            width: (width - 2 * radius) as u16, 
+            height: radius as u16 
+        };
+        xlib::XUnionRectWithRegion(&mut rect_top, region, region);
+
+        // 3. Phần dưới (Không bao gồm góc)
+        let mut rect_bottom = xlib::XRectangle { 
+            x: radius as i16, 
+            y: (height - radius) as i16, 
+            width: (width - 2 * radius) as u16, 
+            height: radius as u16 
+        };
+        xlib::XUnionRectWithRegion(&mut rect_bottom, region, region);
+
+        // 4. Các góc (Dùng cung tròn hoặc tối ưu hơn là các hình chữ nhật lớn)
         apply_corner_arcs(region, width, height, radius);
 
         XShapeCombineRegion(display, target_window, SHAPE_BOUNDING, 0, 0, region, SHAPE_SET);
         XShapeCombineRegion(display, target_window, SHAPE_CLIP, 0, 0, region, SHAPE_SET);
 
         xlib::XDestroyRegion(region);
+        xlib::XSync(display, xlib::False);
+        xlib::XCloseDisplay(display);
+    }
+    0
+}
+
+#[no_mangle]
+pub extern "C" fn reset_window_shape(window_id: c_ulong) -> i32 {
+    unsafe {
+        let display = xlib::XOpenDisplay(ptr::null());
+        if display.is_null() { return -1; }
+
+        let target_window = get_toplevel_window(display, window_id);
+
+        // Reset về NULL (X11 sẽ coi như không có shape, tức là hình chữ nhật đầy đủ)
+        XShapeCombineRegion(display, target_window, SHAPE_BOUNDING, 0, 0, ptr::null_mut(), SHAPE_SET);
+        XShapeCombineRegion(display, target_window, SHAPE_CLIP, 0, 0, ptr::null_mut(), SHAPE_SET);
+
         xlib::XSync(display, xlib::False);
         xlib::XCloseDisplay(display);
     }
@@ -106,19 +146,33 @@ unsafe fn get_toplevel_window(display: *mut xlib::Display, window: c_ulong) -> c
 }
 
 unsafe fn apply_corner_arcs(region: xlib::Region, w: c_int, h: c_int, r: c_int) {
-    for x in 0..r {
-        let dy = (r as f64 - (r as f64 * r as f64 - (r - x) as f64 * (r - x) as f64).sqrt()) as i16;
+    if r <= 0 { return; }
+    
+    // Sử dụng thuật toán vẽ theo hàng ngang (Scanline) để tạo ít Rectangle hơn
+    for y in 0..r {
+        // dx là khoảng cách từ cạnh vào trong theo trục X
+        let dx = (r as f64 - (r as f64 * r as f64 - (r - y) as f64 * (r - y) as f64).sqrt()) as i16;
+        let width = (r as i16 - dx) as u16;
         
-        let mut r1 = xlib::XRectangle { x: x as i16, y: dy, width: 1, height: (r as i16 - dy) as u16 };
-        xlib::XUnionRectWithRegion(&mut r1, region, region);
+        if width > 0 {
+            // Top-left
+            let mut r1 = xlib::XRectangle { x: dx, y: y as i16, width, height: 1 };
+            xlib::XUnionRectWithRegion(&mut r1, region, region);
+            
+            // Top-right
+            let mut r2 = xlib::XRectangle { x: (w - dx as i32 - width as i32) as i16, y: y as i16, width, height: 1 };
+            xlib::XUnionRectWithRegion(&mut r2, region, region);
+            
+            // Bottom-left 
+            let mut r3 = xlib::XRectangle { x: dx, y: (h - y as i32 - 1) as i16, width, height: 1 };
+            xlib::XUnionRectWithRegion(&mut r3, region, region);
+            
+            // Bottom-right
+            let mut r4 = xlib::XRectangle { x: (w - dx as i32 - width as i32) as i16, y: (h - y as i32 - 1) as i16, width, height: 1 };
+            xlib::XUnionRectWithRegion(&mut r4, region, region);
 
-        let mut r2 = xlib::XRectangle { x: (w - x - 1) as i16, y: dy, width: 1, height: (r as i16 - dy) as u16 };
-        xlib::XUnionRectWithRegion(&mut r2, region, region);
 
-        let mut r3 = xlib::XRectangle { x: x as i16, y: (h - r) as i16, width: 1, height: (r as i16 - dy) as u16 };
-        xlib::XUnionRectWithRegion(&mut r3, region, region);
-
-        let mut r4 = xlib::XRectangle { x: (w - x - 1) as i16, y: (h - r) as i16, width: 1, height: (r as i16 - dy) as u16 };
-        xlib::XUnionRectWithRegion(&mut r4, region, region);
+        }
     }
 }
+
