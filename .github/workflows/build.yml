@@ -43,7 +43,7 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update
-        sudo apt-get install -y libx11-dev pkg-config binutils fakeroot
+        sudo apt-get install -y libx11-dev libxext-dev pkg-config binutils fakeroot
       shell: bash
 
     - name: Create Config Properties

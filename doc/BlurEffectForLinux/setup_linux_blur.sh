@@ -93,9 +93,9 @@ else
         read -p "Bạn có muốn cài đặt Picom tự động không? (y/n) " -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
-            echo "Đang cài đặt picom..."
-            sudo apt update && sudo apt install -y picom
-            echo -e "${GREEN}✓ Đã cài đặt Picom. Vui lòng chạy lại script này hoặc khởi động lại ứng dụng.${NC}"
+            echo "Đang cài đặt các thư viện cần thiết (picom, libxext6)..."
+            sudo apt update && sudo apt install -y picom libxext6
+            echo -e "${GREEN}✓ Đã cài đặt xong. Vui lòng chạy lại script này hoặc khởi động lại ứng dụng.${NC}"
         else
             echo "Vui lòng cài đặt Picom hoặc một Compositor hỗ trợ Blur bằng tay để sử dụng tính năng này."
         fi
